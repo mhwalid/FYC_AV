@@ -1,12 +1,18 @@
-import { Application, Router } from "https://deno.land/x/oak/mod.ts";
+import { Application } from "https://deno.land/x/oak/mod.ts";
 import { oakCors } from "https://deno.land/x/cors/mod.ts";
-import todoRouter from "./routes/todo.ts";
-
+// import todoRouter from "./routes/todo.ts";
+import authRouter from "./routes/auth.ts";
+import roleRouter from "./routes/role.ts";
 const app = new Application();
 const port: number = 8080;
 
-app.use(todoRouter.routes());
-app.use(todoRouter.allowedMethods());
+
+// app.use(todoRouter.routes());
+// app.use(todoRouter.allowedMethods());
+app.use(authRouter.routes());
+app.use(authRouter.allowedMethods());
+app.use(roleRouter.routes());
+app.use(roleRouter.allowedMethods());
 app.use(oakCors({ origin: "*" }));
 
 app.addEventListener("listen", ({ secure, hostname, port }) => {

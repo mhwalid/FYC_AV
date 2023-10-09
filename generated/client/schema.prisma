@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+
+
+generator client {
+provider = "prisma-client-js"
+previewFeatures = ["deno"]
+output = "../generated/client"
+}
+
+
+datasource db {
+provider = "postgresql"
+url = env("DATABASE_URL")
+}
+
+model SharePrice {
+id Int @id @default(autoincrement())
+
+
+nom String @unique
+value Float
+volume Int
+
+
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+Transaction Transaction[]
+
+
+@@map(name: "shareprices")
+}
+
+
+model Role {
+id Int @id @default(autoincrement())
+
+
+libelle String @unique
+
+
+createdAt DateTime @default(now())
+updatedAt DateTime @updatedAt
+User User[]
+
+
+@@map(name: "roles")
+}
+
+
+model Transaction {
+id Int @id @default(autoincrement())
+volume Int
+typeTransaction String
+
+
+transactedAt DateTime @default(now())
+
+
+userId Int
+user User @relation(fields: [userId], references: [id])
+
+
+sharePriceId Int
+sharePrice SharePrice @relation(fields: [sharePriceId], references: [id])
+
+
+@@map(name: "transactions")
+}
+
+
+model User {
+id Int @id @default(autoincrement())
+
+
+firstName Int
+lastName String
+email String
+password String
+account Float
+isCdu Boolean? @default(false)
+
+
+cduAcceptedAt DateTime @default(now())
+registerAt DateTime @default(now())
+updatedAt DateTime @default(now())
+
+
+roleId Int
+role Role @relation(fields: [roleId], references: [id])
+Transaction Transaction[]
+
+
+@@map(name: "users")
+}
+
