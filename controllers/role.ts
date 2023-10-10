@@ -23,7 +23,7 @@ export default {
       }
     } catch (error) {
       response.status = 500;
-      response.body = { error: "Internal server error" };
+      response.body = { error: error.message };
     }
   },
 
@@ -36,7 +36,7 @@ export default {
      response.body = createdRole;
     } catch (error) {
      response.status = 500;
-     response.body = { error: "Internal server error" };
+     response.body = { error: error.message };
     }
   },
 
@@ -47,7 +47,7 @@ export default {
       response.body = updatedRole;
     } catch (error) {
       response.status = 500;
-      response.body = { error: "Internal server error" };
+      response.body = { error: error.message };
     }
   },
 
@@ -57,7 +57,7 @@ export default {
       response.status = 204;
     } catch (error) {
       response.status = 500;
-      response.body = { error: "Internal server error" };
+      response.body = { error: error.message };
     }
   },
 };
