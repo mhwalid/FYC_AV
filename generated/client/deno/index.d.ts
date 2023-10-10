@@ -91,52 +91,6 @@ export class PrismaClient<
   $use(cb: Prisma.Middleware): void
 
 /**
-   * Executes a prepared raw query and returns the number of affected rows.
-   * @example
-   * ```
-   * const result = await prisma.$executeRaw`UPDATE User SET cool = ${true} WHERE email = ${'user@email.com'};`
-   * ```
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-   */
-  $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
-
-  /**
-   * Executes a raw query and returns the number of affected rows.
-   * Susceptible to SQL injections, see documentation.
-   * @example
-   * ```
-   * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
-   * ```
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-   */
-  $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;
-
-  /**
-   * Performs a prepared raw query and returns the `SELECT` data.
-   * @example
-   * ```
-   * const result = await prisma.$queryRaw`SELECT * FROM User WHERE id = ${1} OR email = ${'user@email.com'};`
-   * ```
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-   */
-  $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
-
-  /**
-   * Performs a raw query and returns the `SELECT` data.
-   * Susceptible to SQL injections, see documentation.
-   * @example
-   * ```
-   * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
-   * ```
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-   */
-  $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;
-
-  /**
    * Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
    * @example
    * ```
@@ -149,10 +103,24 @@ export class PrismaClient<
    * 
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
-  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
+  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P]): $Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
 
-  $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => $Utils.JsPromise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<R>
+  $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => $Utils.JsPromise<R>, options?: { maxWait?: number, timeout?: number }): $Utils.JsPromise<R>
 
+  /**
+   * Executes a raw MongoDB command and returns the result of it.
+   * @example
+   * ```
+   * const user = await prisma.$runCommandRaw({
+   *   aggregate: 'User',
+   *   pipeline: [{ $match: { name: 'Bob' } }, { $project: { email: true, _id: false } }],
+   *   explain: false,
+   * })
+   * ```
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $runCommandRaw(command: Prisma.InputJsonObject): Prisma.PrismaPromise<Prisma.JsonObject>
 
   $extends: $Extensions.ExtendsHook<'extends', Prisma.TypeMapCb, ExtArgs>
 
@@ -686,7 +654,7 @@ export namespace Prisma {
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     meta: {
       modelProps: 'sharePrice' | 'role' | 'transaction' | 'user'
-      txIsolationLevel: Prisma.TransactionIsolationLevel
+      txIsolationLevel: never
     },
     model: {
       SharePrice: {
@@ -748,6 +716,14 @@ export namespace Prisma {
           groupBy: {
             args: Prisma.SharePriceGroupByArgs<ExtArgs>,
             result: $Utils.Optional<SharePriceGroupByOutputType>[]
+          }
+          findRaw: {
+            args: Prisma.SharePriceFindRawArgs<ExtArgs>,
+            result: Prisma.JsonObject
+          }
+          aggregateRaw: {
+            args: Prisma.SharePriceAggregateRawArgs<ExtArgs>,
+            result: Prisma.JsonObject
           }
           count: {
             args: Prisma.SharePriceCountArgs<ExtArgs>,
@@ -815,6 +791,14 @@ export namespace Prisma {
             args: Prisma.RoleGroupByArgs<ExtArgs>,
             result: $Utils.Optional<RoleGroupByOutputType>[]
           }
+          findRaw: {
+            args: Prisma.RoleFindRawArgs<ExtArgs>,
+            result: Prisma.JsonObject
+          }
+          aggregateRaw: {
+            args: Prisma.RoleAggregateRawArgs<ExtArgs>,
+            result: Prisma.JsonObject
+          }
           count: {
             args: Prisma.RoleCountArgs<ExtArgs>,
             result: $Utils.Optional<RoleCountAggregateOutputType> | number
@@ -880,6 +864,14 @@ export namespace Prisma {
           groupBy: {
             args: Prisma.TransactionGroupByArgs<ExtArgs>,
             result: $Utils.Optional<TransactionGroupByOutputType>[]
+          }
+          findRaw: {
+            args: Prisma.TransactionFindRawArgs<ExtArgs>,
+            result: Prisma.JsonObject
+          }
+          aggregateRaw: {
+            args: Prisma.TransactionAggregateRawArgs<ExtArgs>,
+            result: Prisma.JsonObject
           }
           count: {
             args: Prisma.TransactionCountArgs<ExtArgs>,
@@ -947,6 +939,14 @@ export namespace Prisma {
             args: Prisma.UserGroupByArgs<ExtArgs>,
             result: $Utils.Optional<UserGroupByOutputType>[]
           }
+          findRaw: {
+            args: Prisma.UserFindRawArgs<ExtArgs>,
+            result: Prisma.JsonObject
+          }
+          aggregateRaw: {
+            args: Prisma.UserAggregateRawArgs<ExtArgs>,
+            result: Prisma.JsonObject
+          }
           count: {
             args: Prisma.UserCountArgs<ExtArgs>,
             result: $Utils.Optional<UserCountAggregateOutputType> | number
@@ -958,21 +958,9 @@ export namespace Prisma {
     other: {
       payload: any
       operations: {
-        $executeRawUnsafe: {
-          args: [query: string, ...values: any[]],
-          result: any
-        }
-        $executeRaw: {
-          args: [query: TemplateStringsArray | Prisma.Sql, ...values: any[]],
-          result: any
-        }
-        $queryRawUnsafe: {
-          args: [query: string, ...values: any[]],
-          result: any
-        }
-        $queryRaw: {
-          args: [query: TemplateStringsArray | Prisma.Sql, ...values: any[]],
-          result: any
+        $runCommandRaw: {
+          args: Prisma.InputJsonObject,
+          result: Prisma.JsonObject
         }
       }
     }
@@ -1216,19 +1204,17 @@ export namespace Prisma {
   }
 
   export type SharePriceAvgAggregateOutputType = {
-    id: number | null
     value: number | null
     volume: number | null
   }
 
   export type SharePriceSumAggregateOutputType = {
-    id: number | null
     value: number | null
     volume: number | null
   }
 
   export type SharePriceMinAggregateOutputType = {
-    id: number | null
+    id: string | null
     nom: string | null
     value: number | null
     volume: number | null
@@ -1237,7 +1223,7 @@ export namespace Prisma {
   }
 
   export type SharePriceMaxAggregateOutputType = {
-    id: number | null
+    id: string | null
     nom: string | null
     value: number | null
     volume: number | null
@@ -1257,13 +1243,11 @@ export namespace Prisma {
 
 
   export type SharePriceAvgAggregateInputType = {
-    id?: true
     value?: true
     volume?: true
   }
 
   export type SharePriceSumAggregateInputType = {
-    id?: true
     value?: true
     volume?: true
   }
@@ -1383,7 +1367,7 @@ export namespace Prisma {
   }
 
   export type SharePriceGroupByOutputType = {
-    id: number
+    id: string
     nom: string
     value: number
     volume: number
@@ -1442,7 +1426,7 @@ export namespace Prisma {
       Transaction: Prisma.$TransactionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
-      id: number
+      id: string
       nom: string
       value: number
       volume: number
@@ -1674,6 +1658,33 @@ export namespace Prisma {
     ): Prisma__SharePriceClient<$Result.GetResult<Prisma.$SharePricePayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
 
     /**
+     * Find zero or more SharePrices that matches the filter.
+     * @param {SharePriceFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const sharePrice = await prisma.sharePrice.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: SharePriceFindRawArgs
+    ): Prisma.PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a SharePrice.
+     * @param {SharePriceAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const sharePrice = await prisma.sharePrice.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: SharePriceAggregateRawArgs
+    ): Prisma.PrismaPromise<JsonObject>
+
+    /**
      * Count the number of SharePrices.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -1843,7 +1854,7 @@ export namespace Prisma {
    * Fields of the SharePrice model
    */ 
   interface SharePriceFieldRefs {
-    readonly id: FieldRef<"SharePrice", 'Int'>
+    readonly id: FieldRef<"SharePrice", 'String'>
     readonly nom: FieldRef<"SharePrice", 'String'>
     readonly value: FieldRef<"SharePrice", 'Float'>
     readonly volume: FieldRef<"SharePrice", 'Int'>
@@ -2061,7 +2072,6 @@ export namespace Prisma {
      * The data used to create many SharePrices.
      */
     data: SharePriceCreateManyInput | SharePriceCreateManyInput[]
-    skipDuplicates?: boolean
   }
 
 
@@ -2161,6 +2171,36 @@ export namespace Prisma {
 
 
   /**
+   * SharePrice findRaw
+   */
+  export type SharePriceFindRawArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. ${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     */
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the `find` command ${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     */
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * SharePrice aggregateRaw
+   */
+  export type SharePriceAggregateRawArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. ${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     */
+    pipeline?: InputJsonValue[]
+    /**
+     * Additional options to pass to the `aggregate` command ${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     */
+    options?: InputJsonValue
+  }
+
+
+  /**
    * SharePrice.Transaction
    */
   export type SharePrice$TransactionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -2203,29 +2243,19 @@ export namespace Prisma {
 
   export type AggregateRole = {
     _count: RoleCountAggregateOutputType | null
-    _avg: RoleAvgAggregateOutputType | null
-    _sum: RoleSumAggregateOutputType | null
     _min: RoleMinAggregateOutputType | null
     _max: RoleMaxAggregateOutputType | null
   }
 
-  export type RoleAvgAggregateOutputType = {
-    id: number | null
-  }
-
-  export type RoleSumAggregateOutputType = {
-    id: number | null
-  }
-
   export type RoleMinAggregateOutputType = {
-    id: number | null
+    id: string | null
     libelle: string | null
     createdAt: Date | null
     updatedAt: Date | null
   }
 
   export type RoleMaxAggregateOutputType = {
-    id: number | null
+    id: string | null
     libelle: string | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -2239,14 +2269,6 @@ export namespace Prisma {
     _all: number
   }
 
-
-  export type RoleAvgAggregateInputType = {
-    id?: true
-  }
-
-  export type RoleSumAggregateInputType = {
-    id?: true
-  }
 
   export type RoleMinAggregateInputType = {
     id?: true
@@ -2308,18 +2330,6 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Select which fields to average
-    **/
-    _avg?: RoleAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: RoleSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
      * Select which fields to find the minimum value
     **/
     _min?: RoleMinAggregateInputType
@@ -2350,20 +2360,16 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: RoleCountAggregateInputType | true
-    _avg?: RoleAvgAggregateInputType
-    _sum?: RoleSumAggregateInputType
     _min?: RoleMinAggregateInputType
     _max?: RoleMaxAggregateInputType
   }
 
   export type RoleGroupByOutputType = {
-    id: number
+    id: string
     libelle: string
     createdAt: Date
     updatedAt: Date
     _count: RoleCountAggregateOutputType | null
-    _avg: RoleAvgAggregateOutputType | null
-    _sum: RoleSumAggregateOutputType | null
     _min: RoleMinAggregateOutputType | null
     _max: RoleMaxAggregateOutputType | null
   }
@@ -2410,7 +2416,7 @@ export namespace Prisma {
       User: Prisma.$UserPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
-      id: number
+      id: string
       libelle: string
       createdAt: Date
       updatedAt: Date
@@ -2640,6 +2646,33 @@ export namespace Prisma {
     ): Prisma__RoleClient<$Result.GetResult<Prisma.$RolePayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
 
     /**
+     * Find zero or more Roles that matches the filter.
+     * @param {RoleFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const role = await prisma.role.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: RoleFindRawArgs
+    ): Prisma.PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a Role.
+     * @param {RoleAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const role = await prisma.role.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: RoleAggregateRawArgs
+    ): Prisma.PrismaPromise<JsonObject>
+
+    /**
      * Count the number of Roles.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -2809,7 +2842,7 @@ export namespace Prisma {
    * Fields of the Role model
    */ 
   interface RoleFieldRefs {
-    readonly id: FieldRef<"Role", 'Int'>
+    readonly id: FieldRef<"Role", 'String'>
     readonly libelle: FieldRef<"Role", 'String'>
     readonly createdAt: FieldRef<"Role", 'DateTime'>
     readonly updatedAt: FieldRef<"Role", 'DateTime'>
@@ -3025,7 +3058,6 @@ export namespace Prisma {
      * The data used to create many Roles.
      */
     data: RoleCreateManyInput | RoleCreateManyInput[]
-    skipDuplicates?: boolean
   }
 
 
@@ -3125,6 +3157,36 @@ export namespace Prisma {
 
 
   /**
+   * Role findRaw
+   */
+  export type RoleFindRawArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. ${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     */
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the `find` command ${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     */
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * Role aggregateRaw
+   */
+  export type RoleAggregateRawArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. ${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     */
+    pipeline?: InputJsonValue[]
+    /**
+     * Additional options to pass to the `aggregate` command ${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     */
+    options?: InputJsonValue
+  }
+
+
+  /**
    * Role.User
    */
   export type Role$UserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3174,35 +3236,29 @@ export namespace Prisma {
   }
 
   export type TransactionAvgAggregateOutputType = {
-    id: number | null
     volume: number | null
-    userId: number | null
-    sharePriceId: number | null
   }
 
   export type TransactionSumAggregateOutputType = {
-    id: number | null
     volume: number | null
-    userId: number | null
-    sharePriceId: number | null
   }
 
   export type TransactionMinAggregateOutputType = {
-    id: number | null
+    id: string | null
     volume: number | null
     typeTransaction: string | null
     transactedAt: Date | null
-    userId: number | null
-    sharePriceId: number | null
+    userId: string | null
+    sharePriceId: string | null
   }
 
   export type TransactionMaxAggregateOutputType = {
-    id: number | null
+    id: string | null
     volume: number | null
     typeTransaction: string | null
     transactedAt: Date | null
-    userId: number | null
-    sharePriceId: number | null
+    userId: string | null
+    sharePriceId: string | null
   }
 
   export type TransactionCountAggregateOutputType = {
@@ -3217,17 +3273,11 @@ export namespace Prisma {
 
 
   export type TransactionAvgAggregateInputType = {
-    id?: true
     volume?: true
-    userId?: true
-    sharePriceId?: true
   }
 
   export type TransactionSumAggregateInputType = {
-    id?: true
     volume?: true
-    userId?: true
-    sharePriceId?: true
   }
 
   export type TransactionMinAggregateInputType = {
@@ -3345,12 +3395,12 @@ export namespace Prisma {
   }
 
   export type TransactionGroupByOutputType = {
-    id: number
+    id: string
     volume: number
     typeTransaction: string
     transactedAt: Date
-    userId: number
-    sharePriceId: number
+    userId: string
+    sharePriceId: string
     _count: TransactionCountAggregateOutputType | null
     _avg: TransactionAvgAggregateOutputType | null
     _sum: TransactionSumAggregateOutputType | null
@@ -3405,12 +3455,12 @@ export namespace Prisma {
       sharePrice: Prisma.$SharePricePayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
-      id: number
+      id: string
       volume: number
       typeTransaction: string
       transactedAt: Date
-      userId: number
-      sharePriceId: number
+      userId: string
+      sharePriceId: string
     }, ExtArgs["result"]["transaction"]>
     composites: {}
   }
@@ -3637,6 +3687,33 @@ export namespace Prisma {
     ): Prisma__TransactionClient<$Result.GetResult<Prisma.$TransactionPayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
 
     /**
+     * Find zero or more Transactions that matches the filter.
+     * @param {TransactionFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const transaction = await prisma.transaction.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: TransactionFindRawArgs
+    ): Prisma.PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a Transaction.
+     * @param {TransactionAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const transaction = await prisma.transaction.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: TransactionAggregateRawArgs
+    ): Prisma.PrismaPromise<JsonObject>
+
+    /**
      * Count the number of Transactions.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -3808,12 +3885,12 @@ export namespace Prisma {
    * Fields of the Transaction model
    */ 
   interface TransactionFieldRefs {
-    readonly id: FieldRef<"Transaction", 'Int'>
+    readonly id: FieldRef<"Transaction", 'String'>
     readonly volume: FieldRef<"Transaction", 'Int'>
     readonly typeTransaction: FieldRef<"Transaction", 'String'>
     readonly transactedAt: FieldRef<"Transaction", 'DateTime'>
-    readonly userId: FieldRef<"Transaction", 'Int'>
-    readonly sharePriceId: FieldRef<"Transaction", 'Int'>
+    readonly userId: FieldRef<"Transaction", 'String'>
+    readonly sharePriceId: FieldRef<"Transaction", 'String'>
   }
     
 
@@ -4026,7 +4103,6 @@ export namespace Prisma {
      * The data used to create many Transactions.
      */
     data: TransactionCreateManyInput | TransactionCreateManyInput[]
-    skipDuplicates?: boolean
   }
 
 
@@ -4126,6 +4202,36 @@ export namespace Prisma {
 
 
   /**
+   * Transaction findRaw
+   */
+  export type TransactionFindRawArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. ${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     */
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the `find` command ${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     */
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * Transaction aggregateRaw
+   */
+  export type TransactionAggregateRawArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. ${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     */
+    pipeline?: InputJsonValue[]
+    /**
+     * Additional options to pass to the `aggregate` command ${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     */
+    options?: InputJsonValue
+  }
+
+
+  /**
    * Transaction without action
    */
   export type TransactionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4154,22 +4260,16 @@ export namespace Prisma {
   }
 
   export type UserAvgAggregateOutputType = {
-    id: number | null
-    firstName: number | null
     account: number | null
-    roleId: number | null
   }
 
   export type UserSumAggregateOutputType = {
-    id: number | null
-    firstName: number | null
     account: number | null
-    roleId: number | null
   }
 
   export type UserMinAggregateOutputType = {
-    id: number | null
-    firstName: number | null
+    id: string | null
+    firstName: string | null
     lastName: string | null
     email: string | null
     password: string | null
@@ -4178,12 +4278,12 @@ export namespace Prisma {
     cduAcceptedAt: Date | null
     registerAt: Date | null
     updatedAt: Date | null
-    roleId: number | null
+    roleId: string | null
   }
 
   export type UserMaxAggregateOutputType = {
-    id: number | null
-    firstName: number | null
+    id: string | null
+    firstName: string | null
     lastName: string | null
     email: string | null
     password: string | null
@@ -4192,7 +4292,7 @@ export namespace Prisma {
     cduAcceptedAt: Date | null
     registerAt: Date | null
     updatedAt: Date | null
-    roleId: number | null
+    roleId: string | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -4212,17 +4312,11 @@ export namespace Prisma {
 
 
   export type UserAvgAggregateInputType = {
-    id?: true
-    firstName?: true
     account?: true
-    roleId?: true
   }
 
   export type UserSumAggregateInputType = {
-    id?: true
-    firstName?: true
     account?: true
-    roleId?: true
   }
 
   export type UserMinAggregateInputType = {
@@ -4355,8 +4449,8 @@ export namespace Prisma {
   }
 
   export type UserGroupByOutputType = {
-    id: number
-    firstName: number
+    id: string
+    firstName: string
     lastName: string
     email: string
     password: string
@@ -4365,7 +4459,7 @@ export namespace Prisma {
     cduAcceptedAt: Date
     registerAt: Date
     updatedAt: Date
-    roleId: number
+    roleId: string
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
@@ -4432,8 +4526,8 @@ export namespace Prisma {
       Transaction: Prisma.$TransactionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
-      id: number
-      firstName: number
+      id: string
+      firstName: string
       lastName: string
       email: string
       password: string
@@ -4442,7 +4536,7 @@ export namespace Prisma {
       cduAcceptedAt: Date
       registerAt: Date
       updatedAt: Date
-      roleId: number
+      roleId: string
     }, ExtArgs["result"]["user"]>
     composites: {}
   }
@@ -4669,6 +4763,33 @@ export namespace Prisma {
     ): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
 
     /**
+     * Find zero or more Users that matches the filter.
+     * @param {UserFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const user = await prisma.user.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: UserFindRawArgs
+    ): Prisma.PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a User.
+     * @param {UserAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const user = await prisma.user.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: UserAggregateRawArgs
+    ): Prisma.PrismaPromise<JsonObject>
+
+    /**
      * Count the number of Users.
      * Note, that providing `undefined` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -4840,8 +4961,8 @@ export namespace Prisma {
    * Fields of the User model
    */ 
   interface UserFieldRefs {
-    readonly id: FieldRef<"User", 'Int'>
-    readonly firstName: FieldRef<"User", 'Int'>
+    readonly id: FieldRef<"User", 'String'>
+    readonly firstName: FieldRef<"User", 'String'>
     readonly lastName: FieldRef<"User", 'String'>
     readonly email: FieldRef<"User", 'String'>
     readonly password: FieldRef<"User", 'String'>
@@ -4850,7 +4971,7 @@ export namespace Prisma {
     readonly cduAcceptedAt: FieldRef<"User", 'DateTime'>
     readonly registerAt: FieldRef<"User", 'DateTime'>
     readonly updatedAt: FieldRef<"User", 'DateTime'>
-    readonly roleId: FieldRef<"User", 'Int'>
+    readonly roleId: FieldRef<"User", 'String'>
   }
     
 
@@ -5063,7 +5184,6 @@ export namespace Prisma {
      * The data used to create many Users.
      */
     data: UserCreateManyInput | UserCreateManyInput[]
-    skipDuplicates?: boolean
   }
 
 
@@ -5163,6 +5283,36 @@ export namespace Prisma {
 
 
   /**
+   * User findRaw
+   */
+  export type UserFindRawArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. ${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     */
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the `find` command ${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     */
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * User aggregateRaw
+   */
+  export type UserAggregateRawArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. ${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     */
+    pipeline?: InputJsonValue[]
+    /**
+     * Additional options to pass to the `aggregate` command ${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     */
+    options?: InputJsonValue
+  }
+
+
+  /**
    * User.Transaction
    */
   export type User$TransactionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -5202,16 +5352,6 @@ export namespace Prisma {
   /**
    * Enums
    */
-
-  export const TransactionIsolationLevel: {
-    ReadUncommitted: 'ReadUncommitted',
-    ReadCommitted: 'ReadCommitted',
-    RepeatableRead: 'RepeatableRead',
-    Serializable: 'Serializable'
-  };
-
-  export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
-
 
   export const SharePriceScalarFieldEnum: {
     id: 'id',
@@ -5280,31 +5420,9 @@ export namespace Prisma {
   export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
-  export const NullsOrder: {
-    first: 'first',
-    last: 'last'
-  };
-
-  export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
-
-
   /**
    * Field references 
    */
-
-
-  /**
-   * Reference to a field of type 'Int'
-   */
-  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-  /**
-   * Reference to a field of type 'Int[]'
-   */
-  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
 
 
   /**
@@ -5336,6 +5454,20 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Int'
+   */
+  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+  /**
+   * Reference to a field of type 'Int[]'
+   */
+  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+  /**
    * Reference to a field of type 'DateTime'
    */
   export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
@@ -5363,7 +5495,7 @@ export namespace Prisma {
     AND?: SharePriceWhereInput | SharePriceWhereInput[]
     OR?: SharePriceWhereInput[]
     NOT?: SharePriceWhereInput | SharePriceWhereInput[]
-    id?: IntFilter<"SharePrice"> | number
+    id?: StringFilter<"SharePrice"> | string
     nom?: StringFilter<"SharePrice"> | string
     value?: FloatFilter<"SharePrice"> | number
     volume?: IntFilter<"SharePrice"> | number
@@ -5383,7 +5515,7 @@ export namespace Prisma {
   }
 
   export type SharePriceWhereUniqueInput = Prisma.AtLeast<{
-    id?: number
+    id?: string
     nom?: string
     AND?: SharePriceWhereInput | SharePriceWhereInput[]
     OR?: SharePriceWhereInput[]
@@ -5413,7 +5545,7 @@ export namespace Prisma {
     AND?: SharePriceScalarWhereWithAggregatesInput | SharePriceScalarWhereWithAggregatesInput[]
     OR?: SharePriceScalarWhereWithAggregatesInput[]
     NOT?: SharePriceScalarWhereWithAggregatesInput | SharePriceScalarWhereWithAggregatesInput[]
-    id?: IntWithAggregatesFilter<"SharePrice"> | number
+    id?: StringWithAggregatesFilter<"SharePrice"> | string
     nom?: StringWithAggregatesFilter<"SharePrice"> | string
     value?: FloatWithAggregatesFilter<"SharePrice"> | number
     volume?: IntWithAggregatesFilter<"SharePrice"> | number
@@ -5425,7 +5557,7 @@ export namespace Prisma {
     AND?: RoleWhereInput | RoleWhereInput[]
     OR?: RoleWhereInput[]
     NOT?: RoleWhereInput | RoleWhereInput[]
-    id?: IntFilter<"Role"> | number
+    id?: StringFilter<"Role"> | string
     libelle?: StringFilter<"Role"> | string
     createdAt?: DateTimeFilter<"Role"> | Date | string
     updatedAt?: DateTimeFilter<"Role"> | Date | string
@@ -5441,7 +5573,7 @@ export namespace Prisma {
   }
 
   export type RoleWhereUniqueInput = Prisma.AtLeast<{
-    id?: number
+    id?: string
     libelle?: string
     AND?: RoleWhereInput | RoleWhereInput[]
     OR?: RoleWhereInput[]
@@ -5457,17 +5589,15 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: RoleCountOrderByAggregateInput
-    _avg?: RoleAvgOrderByAggregateInput
     _max?: RoleMaxOrderByAggregateInput
     _min?: RoleMinOrderByAggregateInput
-    _sum?: RoleSumOrderByAggregateInput
   }
 
   export type RoleScalarWhereWithAggregatesInput = {
     AND?: RoleScalarWhereWithAggregatesInput | RoleScalarWhereWithAggregatesInput[]
     OR?: RoleScalarWhereWithAggregatesInput[]
     NOT?: RoleScalarWhereWithAggregatesInput | RoleScalarWhereWithAggregatesInput[]
-    id?: IntWithAggregatesFilter<"Role"> | number
+    id?: StringWithAggregatesFilter<"Role"> | string
     libelle?: StringWithAggregatesFilter<"Role"> | string
     createdAt?: DateTimeWithAggregatesFilter<"Role"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Role"> | Date | string
@@ -5477,12 +5607,12 @@ export namespace Prisma {
     AND?: TransactionWhereInput | TransactionWhereInput[]
     OR?: TransactionWhereInput[]
     NOT?: TransactionWhereInput | TransactionWhereInput[]
-    id?: IntFilter<"Transaction"> | number
+    id?: StringFilter<"Transaction"> | string
     volume?: IntFilter<"Transaction"> | number
     typeTransaction?: StringFilter<"Transaction"> | string
     transactedAt?: DateTimeFilter<"Transaction"> | Date | string
-    userId?: IntFilter<"Transaction"> | number
-    sharePriceId?: IntFilter<"Transaction"> | number
+    userId?: StringFilter<"Transaction"> | string
+    sharePriceId?: StringFilter<"Transaction"> | string
     user?: XOR<UserRelationFilter, UserWhereInput>
     sharePrice?: XOR<SharePriceRelationFilter, SharePriceWhereInput>
   }
@@ -5499,15 +5629,15 @@ export namespace Prisma {
   }
 
   export type TransactionWhereUniqueInput = Prisma.AtLeast<{
-    id?: number
+    id?: string
     AND?: TransactionWhereInput | TransactionWhereInput[]
     OR?: TransactionWhereInput[]
     NOT?: TransactionWhereInput | TransactionWhereInput[]
     volume?: IntFilter<"Transaction"> | number
     typeTransaction?: StringFilter<"Transaction"> | string
     transactedAt?: DateTimeFilter<"Transaction"> | Date | string
-    userId?: IntFilter<"Transaction"> | number
-    sharePriceId?: IntFilter<"Transaction"> | number
+    userId?: StringFilter<"Transaction"> | string
+    sharePriceId?: StringFilter<"Transaction"> | string
     user?: XOR<UserRelationFilter, UserWhereInput>
     sharePrice?: XOR<SharePriceRelationFilter, SharePriceWhereInput>
   }, "id">
@@ -5530,20 +5660,20 @@ export namespace Prisma {
     AND?: TransactionScalarWhereWithAggregatesInput | TransactionScalarWhereWithAggregatesInput[]
     OR?: TransactionScalarWhereWithAggregatesInput[]
     NOT?: TransactionScalarWhereWithAggregatesInput | TransactionScalarWhereWithAggregatesInput[]
-    id?: IntWithAggregatesFilter<"Transaction"> | number
+    id?: StringWithAggregatesFilter<"Transaction"> | string
     volume?: IntWithAggregatesFilter<"Transaction"> | number
     typeTransaction?: StringWithAggregatesFilter<"Transaction"> | string
     transactedAt?: DateTimeWithAggregatesFilter<"Transaction"> | Date | string
-    userId?: IntWithAggregatesFilter<"Transaction"> | number
-    sharePriceId?: IntWithAggregatesFilter<"Transaction"> | number
+    userId?: StringWithAggregatesFilter<"Transaction"> | string
+    sharePriceId?: StringWithAggregatesFilter<"Transaction"> | string
   }
 
   export type UserWhereInput = {
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
-    id?: IntFilter<"User"> | number
-    firstName?: IntFilter<"User"> | number
+    id?: StringFilter<"User"> | string
+    firstName?: StringFilter<"User"> | string
     lastName?: StringFilter<"User"> | string
     email?: StringFilter<"User"> | string
     password?: StringFilter<"User"> | string
@@ -5552,7 +5682,7 @@ export namespace Prisma {
     cduAcceptedAt?: DateTimeFilter<"User"> | Date | string
     registerAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
-    roleId?: IntFilter<"User"> | number
+    roleId?: StringFilter<"User"> | string
     role?: XOR<RoleRelationFilter, RoleWhereInput>
     Transaction?: TransactionListRelationFilter
   }
@@ -5564,7 +5694,7 @@ export namespace Prisma {
     email?: SortOrder
     password?: SortOrder
     account?: SortOrder
-    isCdu?: SortOrderInput | SortOrder
+    isCdu?: SortOrder
     cduAcceptedAt?: SortOrder
     registerAt?: SortOrder
     updatedAt?: SortOrder
@@ -5574,11 +5704,11 @@ export namespace Prisma {
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
-    id?: number
+    id?: string
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
-    firstName?: IntFilter<"User"> | number
+    firstName?: StringFilter<"User"> | string
     lastName?: StringFilter<"User"> | string
     email?: StringFilter<"User"> | string
     password?: StringFilter<"User"> | string
@@ -5587,7 +5717,7 @@ export namespace Prisma {
     cduAcceptedAt?: DateTimeFilter<"User"> | Date | string
     registerAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
-    roleId?: IntFilter<"User"> | number
+    roleId?: StringFilter<"User"> | string
     role?: XOR<RoleRelationFilter, RoleWhereInput>
     Transaction?: TransactionListRelationFilter
   }, "id">
@@ -5599,7 +5729,7 @@ export namespace Prisma {
     email?: SortOrder
     password?: SortOrder
     account?: SortOrder
-    isCdu?: SortOrderInput | SortOrder
+    isCdu?: SortOrder
     cduAcceptedAt?: SortOrder
     registerAt?: SortOrder
     updatedAt?: SortOrder
@@ -5615,8 +5745,8 @@ export namespace Prisma {
     AND?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
     OR?: UserScalarWhereWithAggregatesInput[]
     NOT?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
-    id?: IntWithAggregatesFilter<"User"> | number
-    firstName?: IntWithAggregatesFilter<"User"> | number
+    id?: StringWithAggregatesFilter<"User"> | string
+    firstName?: StringWithAggregatesFilter<"User"> | string
     lastName?: StringWithAggregatesFilter<"User"> | string
     email?: StringWithAggregatesFilter<"User"> | string
     password?: StringWithAggregatesFilter<"User"> | string
@@ -5625,10 +5755,11 @@ export namespace Prisma {
     cduAcceptedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     registerAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
-    roleId?: IntWithAggregatesFilter<"User"> | number
+    roleId?: StringWithAggregatesFilter<"User"> | string
   }
 
   export type SharePriceCreateInput = {
+    id?: string
     nom: string
     value: number
     volume: number
@@ -5638,7 +5769,7 @@ export namespace Prisma {
   }
 
   export type SharePriceUncheckedCreateInput = {
-    id?: number
+    id?: string
     nom: string
     value: number
     volume: number
@@ -5657,7 +5788,6 @@ export namespace Prisma {
   }
 
   export type SharePriceUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
     nom?: StringFieldUpdateOperationsInput | string
     value?: FloatFieldUpdateOperationsInput | number
     volume?: IntFieldUpdateOperationsInput | number
@@ -5667,7 +5797,7 @@ export namespace Prisma {
   }
 
   export type SharePriceCreateManyInput = {
-    id?: number
+    id?: string
     nom: string
     value: number
     volume: number
@@ -5684,7 +5814,6 @@ export namespace Prisma {
   }
 
   export type SharePriceUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
     nom?: StringFieldUpdateOperationsInput | string
     value?: FloatFieldUpdateOperationsInput | number
     volume?: IntFieldUpdateOperationsInput | number
@@ -5693,6 +5822,7 @@ export namespace Prisma {
   }
 
   export type RoleCreateInput = {
+    id?: string
     libelle: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -5700,7 +5830,7 @@ export namespace Prisma {
   }
 
   export type RoleUncheckedCreateInput = {
-    id?: number
+    id?: string
     libelle: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -5715,7 +5845,6 @@ export namespace Prisma {
   }
 
   export type RoleUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
     libelle?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -5723,7 +5852,7 @@ export namespace Prisma {
   }
 
   export type RoleCreateManyInput = {
-    id?: number
+    id?: string
     libelle: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -5736,13 +5865,13 @@ export namespace Prisma {
   }
 
   export type RoleUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
     libelle?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TransactionCreateInput = {
+    id?: string
     volume: number
     typeTransaction: string
     transactedAt?: Date | string
@@ -5751,12 +5880,12 @@ export namespace Prisma {
   }
 
   export type TransactionUncheckedCreateInput = {
-    id?: number
+    id?: string
     volume: number
     typeTransaction: string
     transactedAt?: Date | string
-    userId: number
-    sharePriceId: number
+    userId: string
+    sharePriceId: string
   }
 
   export type TransactionUpdateInput = {
@@ -5768,21 +5897,20 @@ export namespace Prisma {
   }
 
   export type TransactionUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
     volume?: IntFieldUpdateOperationsInput | number
     typeTransaction?: StringFieldUpdateOperationsInput | string
     transactedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    userId?: IntFieldUpdateOperationsInput | number
-    sharePriceId?: IntFieldUpdateOperationsInput | number
+    userId?: StringFieldUpdateOperationsInput | string
+    sharePriceId?: StringFieldUpdateOperationsInput | string
   }
 
   export type TransactionCreateManyInput = {
-    id?: number
+    id?: string
     volume: number
     typeTransaction: string
     transactedAt?: Date | string
-    userId: number
-    sharePriceId: number
+    userId: string
+    sharePriceId: string
   }
 
   export type TransactionUpdateManyMutationInput = {
@@ -5792,16 +5920,16 @@ export namespace Prisma {
   }
 
   export type TransactionUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
     volume?: IntFieldUpdateOperationsInput | number
     typeTransaction?: StringFieldUpdateOperationsInput | string
     transactedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    userId?: IntFieldUpdateOperationsInput | number
-    sharePriceId?: IntFieldUpdateOperationsInput | number
+    userId?: StringFieldUpdateOperationsInput | string
+    sharePriceId?: StringFieldUpdateOperationsInput | string
   }
 
   export type UserCreateInput = {
-    firstName: number
+    id?: string
+    firstName: string
     lastName: string
     email: string
     password: string
@@ -5815,8 +5943,8 @@ export namespace Prisma {
   }
 
   export type UserUncheckedCreateInput = {
-    id?: number
-    firstName: number
+    id?: string
+    firstName: string
     lastName: string
     email: string
     password: string
@@ -5825,12 +5953,12 @@ export namespace Prisma {
     cduAcceptedAt?: Date | string
     registerAt?: Date | string
     updatedAt?: Date | string
-    roleId: number
+    roleId: string
     Transaction?: TransactionUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
-    firstName?: IntFieldUpdateOperationsInput | number
+    firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
@@ -5844,8 +5972,7 @@ export namespace Prisma {
   }
 
   export type UserUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    firstName?: IntFieldUpdateOperationsInput | number
+    firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
@@ -5854,13 +5981,13 @@ export namespace Prisma {
     cduAcceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     registerAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    roleId?: IntFieldUpdateOperationsInput | number
+    roleId?: StringFieldUpdateOperationsInput | string
     Transaction?: TransactionUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
-    id?: number
-    firstName: number
+    id?: string
+    firstName: string
     lastName: string
     email: string
     password: string
@@ -5869,11 +5996,11 @@ export namespace Prisma {
     cduAcceptedAt?: Date | string
     registerAt?: Date | string
     updatedAt?: Date | string
-    roleId: number
+    roleId: string
   }
 
   export type UserUpdateManyMutationInput = {
-    firstName?: IntFieldUpdateOperationsInput | number
+    firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
@@ -5885,8 +6012,7 @@ export namespace Prisma {
   }
 
   export type UserUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    firstName?: IntFieldUpdateOperationsInput | number
+    firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
@@ -5895,18 +6021,7 @@ export namespace Prisma {
     cduAcceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     registerAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    roleId?: IntFieldUpdateOperationsInput | number
-  }
-
-  export type IntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
+    roleId?: StringFieldUpdateOperationsInput | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -5933,6 +6048,17 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
   }
 
   export type DateTimeFilter<$PrismaModel = never> = {
@@ -5966,7 +6092,6 @@ export namespace Prisma {
   }
 
   export type SharePriceAvgOrderByAggregateInput = {
-    id?: SortOrder
     value?: SortOrder
     volume?: SortOrder
   }
@@ -5990,25 +6115,8 @@ export namespace Prisma {
   }
 
   export type SharePriceSumOrderByAggregateInput = {
-    id?: SortOrder
     value?: SortOrder
     volume?: SortOrder
-  }
-
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
@@ -6045,6 +6153,22 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
   export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
@@ -6076,10 +6200,6 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
-  export type RoleAvgOrderByAggregateInput = {
-    id?: SortOrder
-  }
-
   export type RoleMaxOrderByAggregateInput = {
     id?: SortOrder
     libelle?: SortOrder
@@ -6092,10 +6212,6 @@ export namespace Prisma {
     libelle?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
-  }
-
-  export type RoleSumOrderByAggregateInput = {
-    id?: SortOrder
   }
 
   export type UserRelationFilter = {
@@ -6118,10 +6234,7 @@ export namespace Prisma {
   }
 
   export type TransactionAvgOrderByAggregateInput = {
-    id?: SortOrder
     volume?: SortOrder
-    userId?: SortOrder
-    sharePriceId?: SortOrder
   }
 
   export type TransactionMaxOrderByAggregateInput = {
@@ -6143,25 +6256,18 @@ export namespace Prisma {
   }
 
   export type TransactionSumOrderByAggregateInput = {
-    id?: SortOrder
     volume?: SortOrder
-    userId?: SortOrder
-    sharePriceId?: SortOrder
   }
 
   export type BoolNullableFilter<$PrismaModel = never> = {
     equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
     not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
+    isSet?: boolean
   }
 
   export type RoleRelationFilter = {
     is?: RoleWhereInput
     isNot?: RoleWhereInput
-  }
-
-  export type SortOrderInput = {
-    sort: SortOrder
-    nulls?: NullsOrder
   }
 
   export type UserCountOrderByAggregateInput = {
@@ -6179,10 +6285,7 @@ export namespace Prisma {
   }
 
   export type UserAvgOrderByAggregateInput = {
-    id?: SortOrder
-    firstName?: SortOrder
     account?: SortOrder
-    roleId?: SortOrder
   }
 
   export type UserMaxOrderByAggregateInput = {
@@ -6214,10 +6317,7 @@ export namespace Prisma {
   }
 
   export type UserSumOrderByAggregateInput = {
-    id?: SortOrder
-    firstName?: SortOrder
     account?: SortOrder
-    roleId?: SortOrder
   }
 
   export type BoolNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -6226,6 +6326,7 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedBoolNullableFilter<$PrismaModel>
     _max?: NestedBoolNullableFilter<$PrismaModel>
+    isSet?: boolean
   }
 
   export type TransactionCreateNestedManyWithoutSharePriceInput = {
@@ -6386,6 +6487,7 @@ export namespace Prisma {
 
   export type NullableBoolFieldUpdateOperationsInput = {
     set?: boolean | null
+    unset?: boolean
   }
 
   export type RoleUpdateOneRequiredWithoutUserNestedInput = {
@@ -6424,17 +6526,6 @@ export namespace Prisma {
     deleteMany?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
   }
 
-  export type NestedIntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
-  }
-
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -6460,6 +6551,17 @@ export namespace Prisma {
     not?: NestedFloatFilter<$PrismaModel> | number
   }
 
+  export type NestedIntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
   export type NestedDateTimeFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
@@ -6469,22 +6571,6 @@ export namespace Prisma {
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
-  }
-
-  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
   }
 
   export type NestedStringWithAggregatesFilter<$PrismaModel = never> = {
@@ -6520,6 +6606,22 @@ export namespace Prisma {
     _max?: NestedFloatFilter<$PrismaModel>
   }
 
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
+  }
+
   export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
@@ -6537,6 +6639,7 @@ export namespace Prisma {
   export type NestedBoolNullableFilter<$PrismaModel = never> = {
     equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
     not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
+    isSet?: boolean
   }
 
   export type NestedBoolNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -6545,6 +6648,7 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedBoolNullableFilter<$PrismaModel>
     _max?: NestedBoolNullableFilter<$PrismaModel>
+    isSet?: boolean
   }
 
   export type NestedIntNullableFilter<$PrismaModel = never> = {
@@ -6556,9 +6660,11 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
+    isSet?: boolean
   }
 
   export type TransactionCreateWithoutSharePriceInput = {
+    id?: string
     volume: number
     typeTransaction: string
     transactedAt?: Date | string
@@ -6566,11 +6672,11 @@ export namespace Prisma {
   }
 
   export type TransactionUncheckedCreateWithoutSharePriceInput = {
-    id?: number
+    id?: string
     volume: number
     typeTransaction: string
     transactedAt?: Date | string
-    userId: number
+    userId: string
   }
 
   export type TransactionCreateOrConnectWithoutSharePriceInput = {
@@ -6580,7 +6686,6 @@ export namespace Prisma {
 
   export type TransactionCreateManySharePriceInputEnvelope = {
     data: TransactionCreateManySharePriceInput | TransactionCreateManySharePriceInput[]
-    skipDuplicates?: boolean
   }
 
   export type TransactionUpsertWithWhereUniqueWithoutSharePriceInput = {
@@ -6603,16 +6708,17 @@ export namespace Prisma {
     AND?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
     OR?: TransactionScalarWhereInput[]
     NOT?: TransactionScalarWhereInput | TransactionScalarWhereInput[]
-    id?: IntFilter<"Transaction"> | number
+    id?: StringFilter<"Transaction"> | string
     volume?: IntFilter<"Transaction"> | number
     typeTransaction?: StringFilter<"Transaction"> | string
     transactedAt?: DateTimeFilter<"Transaction"> | Date | string
-    userId?: IntFilter<"Transaction"> | number
-    sharePriceId?: IntFilter<"Transaction"> | number
+    userId?: StringFilter<"Transaction"> | string
+    sharePriceId?: StringFilter<"Transaction"> | string
   }
 
   export type UserCreateWithoutRoleInput = {
-    firstName: number
+    id?: string
+    firstName: string
     lastName: string
     email: string
     password: string
@@ -6625,8 +6731,8 @@ export namespace Prisma {
   }
 
   export type UserUncheckedCreateWithoutRoleInput = {
-    id?: number
-    firstName: number
+    id?: string
+    firstName: string
     lastName: string
     email: string
     password: string
@@ -6645,7 +6751,6 @@ export namespace Prisma {
 
   export type UserCreateManyRoleInputEnvelope = {
     data: UserCreateManyRoleInput | UserCreateManyRoleInput[]
-    skipDuplicates?: boolean
   }
 
   export type UserUpsertWithWhereUniqueWithoutRoleInput = {
@@ -6668,8 +6773,8 @@ export namespace Prisma {
     AND?: UserScalarWhereInput | UserScalarWhereInput[]
     OR?: UserScalarWhereInput[]
     NOT?: UserScalarWhereInput | UserScalarWhereInput[]
-    id?: IntFilter<"User"> | number
-    firstName?: IntFilter<"User"> | number
+    id?: StringFilter<"User"> | string
+    firstName?: StringFilter<"User"> | string
     lastName?: StringFilter<"User"> | string
     email?: StringFilter<"User"> | string
     password?: StringFilter<"User"> | string
@@ -6678,11 +6783,12 @@ export namespace Prisma {
     cduAcceptedAt?: DateTimeFilter<"User"> | Date | string
     registerAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
-    roleId?: IntFilter<"User"> | number
+    roleId?: StringFilter<"User"> | string
   }
 
   export type UserCreateWithoutTransactionInput = {
-    firstName: number
+    id?: string
+    firstName: string
     lastName: string
     email: string
     password: string
@@ -6695,8 +6801,8 @@ export namespace Prisma {
   }
 
   export type UserUncheckedCreateWithoutTransactionInput = {
-    id?: number
-    firstName: number
+    id?: string
+    firstName: string
     lastName: string
     email: string
     password: string
@@ -6705,7 +6811,7 @@ export namespace Prisma {
     cduAcceptedAt?: Date | string
     registerAt?: Date | string
     updatedAt?: Date | string
-    roleId: number
+    roleId: string
   }
 
   export type UserCreateOrConnectWithoutTransactionInput = {
@@ -6714,6 +6820,7 @@ export namespace Prisma {
   }
 
   export type SharePriceCreateWithoutTransactionInput = {
+    id?: string
     nom: string
     value: number
     volume: number
@@ -6722,7 +6829,7 @@ export namespace Prisma {
   }
 
   export type SharePriceUncheckedCreateWithoutTransactionInput = {
-    id?: number
+    id?: string
     nom: string
     value: number
     volume: number
@@ -6747,7 +6854,7 @@ export namespace Prisma {
   }
 
   export type UserUpdateWithoutTransactionInput = {
-    firstName?: IntFieldUpdateOperationsInput | number
+    firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
@@ -6760,8 +6867,7 @@ export namespace Prisma {
   }
 
   export type UserUncheckedUpdateWithoutTransactionInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    firstName?: IntFieldUpdateOperationsInput | number
+    firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
@@ -6770,7 +6876,7 @@ export namespace Prisma {
     cduAcceptedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     registerAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    roleId?: IntFieldUpdateOperationsInput | number
+    roleId?: StringFieldUpdateOperationsInput | string
   }
 
   export type SharePriceUpsertWithoutTransactionInput = {
@@ -6793,7 +6899,6 @@ export namespace Prisma {
   }
 
   export type SharePriceUncheckedUpdateWithoutTransactionInput = {
-    id?: IntFieldUpdateOperationsInput | number
     nom?: StringFieldUpdateOperationsInput | string
     value?: FloatFieldUpdateOperationsInput | number
     volume?: IntFieldUpdateOperationsInput | number
@@ -6802,13 +6907,14 @@ export namespace Prisma {
   }
 
   export type RoleCreateWithoutUserInput = {
+    id?: string
     libelle: string
     createdAt?: Date | string
     updatedAt?: Date | string
   }
 
   export type RoleUncheckedCreateWithoutUserInput = {
-    id?: number
+    id?: string
     libelle: string
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -6820,6 +6926,7 @@ export namespace Prisma {
   }
 
   export type TransactionCreateWithoutUserInput = {
+    id?: string
     volume: number
     typeTransaction: string
     transactedAt?: Date | string
@@ -6827,11 +6934,11 @@ export namespace Prisma {
   }
 
   export type TransactionUncheckedCreateWithoutUserInput = {
-    id?: number
+    id?: string
     volume: number
     typeTransaction: string
     transactedAt?: Date | string
-    sharePriceId: number
+    sharePriceId: string
   }
 
   export type TransactionCreateOrConnectWithoutUserInput = {
@@ -6841,7 +6948,6 @@ export namespace Prisma {
 
   export type TransactionCreateManyUserInputEnvelope = {
     data: TransactionCreateManyUserInput | TransactionCreateManyUserInput[]
-    skipDuplicates?: boolean
   }
 
   export type RoleUpsertWithoutUserInput = {
@@ -6862,7 +6968,6 @@ export namespace Prisma {
   }
 
   export type RoleUncheckedUpdateWithoutUserInput = {
-    id?: IntFieldUpdateOperationsInput | number
     libelle?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -6885,11 +6990,11 @@ export namespace Prisma {
   }
 
   export type TransactionCreateManySharePriceInput = {
-    id?: number
+    id?: string
     volume: number
     typeTransaction: string
     transactedAt?: Date | string
-    userId: number
+    userId: string
   }
 
   export type TransactionUpdateWithoutSharePriceInput = {
@@ -6900,24 +7005,22 @@ export namespace Prisma {
   }
 
   export type TransactionUncheckedUpdateWithoutSharePriceInput = {
-    id?: IntFieldUpdateOperationsInput | number
     volume?: IntFieldUpdateOperationsInput | number
     typeTransaction?: StringFieldUpdateOperationsInput | string
     transactedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    userId?: IntFieldUpdateOperationsInput | number
+    userId?: StringFieldUpdateOperationsInput | string
   }
 
   export type TransactionUncheckedUpdateManyWithoutSharePriceInput = {
-    id?: IntFieldUpdateOperationsInput | number
     volume?: IntFieldUpdateOperationsInput | number
     typeTransaction?: StringFieldUpdateOperationsInput | string
     transactedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    userId?: IntFieldUpdateOperationsInput | number
+    userId?: StringFieldUpdateOperationsInput | string
   }
 
   export type UserCreateManyRoleInput = {
-    id?: number
-    firstName: number
+    id?: string
+    firstName: string
     lastName: string
     email: string
     password: string
@@ -6929,7 +7032,7 @@ export namespace Prisma {
   }
 
   export type UserUpdateWithoutRoleInput = {
-    firstName?: IntFieldUpdateOperationsInput | number
+    firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
@@ -6942,8 +7045,7 @@ export namespace Prisma {
   }
 
   export type UserUncheckedUpdateWithoutRoleInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    firstName?: IntFieldUpdateOperationsInput | number
+    firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
@@ -6956,8 +7058,7 @@ export namespace Prisma {
   }
 
   export type UserUncheckedUpdateManyWithoutRoleInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    firstName?: IntFieldUpdateOperationsInput | number
+    firstName?: StringFieldUpdateOperationsInput | string
     lastName?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     password?: StringFieldUpdateOperationsInput | string
@@ -6969,11 +7070,11 @@ export namespace Prisma {
   }
 
   export type TransactionCreateManyUserInput = {
-    id?: number
+    id?: string
     volume: number
     typeTransaction: string
     transactedAt?: Date | string
-    sharePriceId: number
+    sharePriceId: string
   }
 
   export type TransactionUpdateWithoutUserInput = {
@@ -6984,19 +7085,17 @@ export namespace Prisma {
   }
 
   export type TransactionUncheckedUpdateWithoutUserInput = {
-    id?: IntFieldUpdateOperationsInput | number
     volume?: IntFieldUpdateOperationsInput | number
     typeTransaction?: StringFieldUpdateOperationsInput | string
     transactedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    sharePriceId?: IntFieldUpdateOperationsInput | number
+    sharePriceId?: StringFieldUpdateOperationsInput | string
   }
 
   export type TransactionUncheckedUpdateManyWithoutUserInput = {
-    id?: IntFieldUpdateOperationsInput | number
     volume?: IntFieldUpdateOperationsInput | number
     typeTransaction?: StringFieldUpdateOperationsInput | string
     transactedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    sharePriceId?: IntFieldUpdateOperationsInput | number
+    sharePriceId?: StringFieldUpdateOperationsInput | string
   }
 
 

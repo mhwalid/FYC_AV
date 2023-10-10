@@ -14,8 +14,7 @@ export default {
 
   async getRoleById({response, params}: {response: any, params: {id: string}}) {
     try {
-      const id = parseInt(params.id);
-      const role = await roleService.findOne(id);
+      const role = await roleService.findOne(params.id);
       if (role) {
         response.body = role;
       } else {
@@ -29,9 +28,10 @@ export default {
   },
 
   async createRole({ request, response }: { request: any; response: any }) {
+    const body = await request.body({ type: 'json' });
+    const requestBody = await body.value;
     try {
-      const role = await request.body().value;
-      const createdRole = await roleService.create(role);
+      const createdRole = await roleService.create(requestBody);
      response.status = 201;
      response.body = createdRole;
     } catch (error) {
@@ -42,9 +42,8 @@ export default {
 
   async updateRoleById({params, response, request}: {params:{id:string}, request:any, response:any}) {
     try {
-      const id = parseInt(params.id);
       const role = await request.body().value;
-      const updatedRole = await roleService.updateByID(role, id);
+      const updatedRole = await roleService.updateByID(role, params.id);
       response.body = updatedRole;
     } catch (error) {
       response.status = 500;
@@ -54,8 +53,7 @@ export default {
 
   async deleteRoleById({ response, params }: { response: any, params: { id: string } }) {
     try {
-      const id = parseInt(params.id);
-      await roleService.deleteByID(id);
+      await roleService.deleteByID(params.id);
       response.status = 204;
     } catch (error) {
       response.status = 500;

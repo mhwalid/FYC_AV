@@ -11,19 +11,16 @@ output = "../generated/client"
 
 
 datasource db {
-provider = "postgresql"
+provider = "mongodb"
 url = env("DATABASE_URL")
+directUrl = env("DIRECT_DATABASE_URL")
 }
 
 model SharePrice {
-id Int @id @default(autoincrement())
-
-
+ id String @id @default(auto()) @map("_id") @db.ObjectId
 nom String @unique
 value Float
 volume Int
-
-
 createdAt DateTime @default(now())
 updatedAt DateTime @updatedAt
 Transaction Transaction[]
@@ -34,12 +31,8 @@ Transaction Transaction[]
 
 
 model Role {
-id Int @id @default(autoincrement())
-
-
+ id String @id @default(auto()) @map("_id") @db.ObjectId
 libelle String @unique
-
-
 createdAt DateTime @default(now())
 updatedAt DateTime @updatedAt
 User User[]
@@ -50,44 +43,30 @@ User User[]
 
 
 model Transaction {
-id Int @id @default(autoincrement())
+ id String @id @default(auto()) @map("_id") @db.ObjectId
 volume Int
 typeTransaction String
-
-
 transactedAt DateTime @default(now())
-
-
-userId Int
+userId String @db.ObjectId
 user User @relation(fields: [userId], references: [id])
-
-
-sharePriceId Int
+sharePriceId String @db.ObjectId
 sharePrice SharePrice @relation(fields: [sharePriceId], references: [id])
-
-
 @@map(name: "transactions")
 }
 
 
 model User {
-id Int @id @default(autoincrement())
-
-
-firstName Int
+id String @id @default(auto()) @map("_id") @db.ObjectId
+firstName String
 lastName String
 email String
 password String
 account Float
 isCdu Boolean? @default(false)
-
-
 cduAcceptedAt DateTime @default(now())
 registerAt DateTime @default(now())
 updatedAt DateTime @default(now())
-
-
-roleId Int
+roleId String @db.ObjectId
 role Role @relation(fields: [roleId], references: [id])
 Transaction Transaction[]
 

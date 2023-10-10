@@ -8,7 +8,7 @@ router
         context.response.body = 'The server is alive! 🚀';
     })
     .post("/auth/register", authController.register)
-    // .post("/auth/login", todoController.createTodo)
+    .post("/auth/login", authController.login)
 
 
 export default router;

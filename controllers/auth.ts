@@ -12,8 +12,7 @@ export default{
             }
             return;
         }
-        const user = await authService.register(request.body);
-        console.log(user);
+        const user = await authService.register(requestBody);
         response.status = 200;
         response.body = user;
     },
@@ -22,9 +21,8 @@ export default{
         const requestBody = await body.value;
         try {
             const jwt = await authService.login(requestBody);
-            console.log(jwt);
             response.status = 200;
-            response.body = jwt;
+            response.body = {token: jwt};
 
         }catch(error){
             response.status = 404;
