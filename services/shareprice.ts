@@ -1,18 +1,5 @@
 import { Prisma, Role } from "../generated/client/deno/edge.ts";
-import { PrismaClient } from "../generated/client/deno/edge.ts";
-import { load } from "https://deno.land/std@0.202.0/dotenv/mod.ts";
-
-const envVars = await load();
-
-
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: envVars.DATABASE_URL,
-    },
-  },
-});
-
+import { prisma } from "../server.ts";
 export default {
     // make the crud with shareprice model 
     findAll: async() => {
