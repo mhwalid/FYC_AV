@@ -1,46 +1,34 @@
-import { Application } from "https://deno.land/x/oak/mod.ts";
+import { Application, Router } from "https://deno.land/x/oak/mod.ts";
 import { oakCors } from "https://deno.land/x/cors/mod.ts";
-// import todoRouter from "./routes/todo.ts";
+import { config } from "https://deno.land/x/dotenv/mod.ts";
+
 import authRouter from "./routes/auth.ts";
 import roleRouter from "./routes/role.ts";
 import transactionRouter from "./routes/transaction.ts";
 import sharePriceRouter from "./routes/shareprice.ts";
-import { PrismaClient } from "./generated/client/deno/edge.ts";
-import { load } from "https://deno.land/std@0.202.0/dotenv/mod.ts";
+import userRouter from "./routes/user.ts";
 
-const envVars = await load();
-
-
-export const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      url: envVars.DATABASE_URL,
-    },
-  },
-});
+const env = config();
+const { PORT, HOSTNAME } = env;
 
 const app = new Application();
-const port: number = 8080;
+const router = new Router();
 
-
-// app.use(todoRouter.routes());
-// app.use(todoRouter.allowedMethods());
-app.use(authRouter.routes());
-app.use(authRouter.allowedMethods());
-app.use(roleRouter.routes());
-app.use(roleRouter.allowedMethods());
-app.use(sharePriceRouter.routes());
-app.use(sharePriceRouter.allowedMethods());
-app.use(transactionRouter.routes());
-app.use(transactionRouter.allowedMethods());
+router.use("/auth", authRouter.routes());
+router.use("/role", roleRouter.routes());
+router.use("/share-price", sharePriceRouter.routes());
+router.use("/transaction", transactionRouter.routes());
+router.use("/user", userRouter.routes());
 
 app.use(oakCors({ origin: "*" }));
+app.use(router.routes());
+app.use(router.allowedMethods());
 
 app.addEventListener("listen", ({ secure, hostname, port }) => {
     const protocol = secure ? "https://" : "http://";
     const url = `${protocol}${hostname ?? "localhost"}:${port}`;
-    console.log(`Listening on: ${port}`);
+    console.log(`Listening on: ${url}`);
 });
 
-await app.listen({ port });
-export default app;
+const port = parseInt(PORT) || 8080;
+await app.listen({ port, hostname: HOSTNAME || "localhost" });

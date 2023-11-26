@@ -1,19 +1,13 @@
 import { Router } from "https://deno.land/x/oak/mod.ts";
-import roleController from "../controllers/role.ts";
+import RoleController from "../controllers/roleController.ts";
 
 const router = new Router();
 
 router
-    .get('/', (context) => {
-        context.response.body = 'The server is alive! 🚀';
-    })
-    .get('/role/all', roleController.getAllRoles)
-    .get("/role/:id", roleController.getRoleById)
-    .post("/role/create", roleController.createRole)
-    .put("/role/:id", roleController.updateRoleById)
-    .delete("/role/:id", roleController.deleteRoleById)
-    
-    // .post("/auth/login", todoController.createTodo)
-
+    .get('/all', RoleController.getAllRoles)
+    .get("/:id", RoleController.getRoleById)
+    .post("/create", RoleController.createRole)
+    .put("/:id", RoleController.updateRole)
+    .delete("/:id", RoleController.deleteRole)
 
 export default router;

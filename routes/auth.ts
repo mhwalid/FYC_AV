@@ -1,14 +1,11 @@
 import { Router } from "https://deno.land/x/oak/mod.ts";
-import authController from "../controllers/auth.ts";
+import AuthController from "../controllers/authController.ts";
 
 const router = new Router();
 
 router
-    .get('/', (context) => {
-        context.response.body = 'The server is alive! 🚀';
-    })
-    .post("/auth/register", authController.register)
-    .post("/auth/login", authController.login)
+    .post("/register", AuthController.register)
+    .post("/login", AuthController.login)
 
 
 export default router;
