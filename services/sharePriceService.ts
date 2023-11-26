@@ -51,7 +51,7 @@ const SharePriceService = {
   create: async (data: SharePriceSchemaCreate): Promise<CreateResponse> => {
     try {
       await dbClient.query(
-        "INSERT INTO share_prices (name, value, volume, createdAt) VALUES (?, ?, ?, NOW())",
+        "INSERT INTO share_prices (name, value, volume, created_at) VALUES (?, ?, ?, NOW())",
         [data.name, data.value, data.volume]
       );
       return { success: true };
@@ -62,7 +62,7 @@ const SharePriceService = {
   updateById: async (data: SharePriceSchemaUpdate): Promise<UpdateByIdResponse> => {
     try {
         await dbClient.query(
-          "UPDATE share_prices SET name = ?, value = ?, volume = ?, updatedAt = NOW() WHERE id = ?",
+          "UPDATE share_prices SET name = ?, value = ?, volume = ?, updated_at = NOW() WHERE id = ?",
           [data.name, data.value, data.volume, data.id]
         );
 

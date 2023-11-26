@@ -13,6 +13,6 @@ export interface TransactionSchema {
 export interface TransactionSchemaCreate {
   volume: number;
   typeTransaction: string;
-  user: UserSchema;
-  sharePrice: SharePriceSchema;
+  userId: number;
+  sharePriceId: number;
 }

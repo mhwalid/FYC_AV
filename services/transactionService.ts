@@ -37,8 +37,8 @@ const TransactionService = {
   create: async (data: TransactionSchemaCreate): Promise<CreateResponse> => {
     try {
       await dbClient.query(
-        "INSERT INTO transactions (volume, typeTransaction, transactedAt, user_id, sharePrice_id) VALUES (?, ?, NOW(), ?, ?)",
-        [data.volume, data.typeTransaction, data.user.id, data.sharePrice.id]
+        "INSERT INTO transactions (volume, type_transaction, transacted_at, user_id, share_price_id) VALUES (?, ?, NOW(), ?, ?)",
+        [data.volume, data.typeTransaction, data.userId, data.sharePriceId]
       );
       return { success: true };
     } catch (error) {

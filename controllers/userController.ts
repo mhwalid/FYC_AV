@@ -127,7 +127,7 @@ const UserController = {
         return;
       }
 
-      const result = await UserService.updateUserInfoById(data);
+      const result = await UserService.updateUserRoleById(data);
 
       if (!result.success) {
         ctx.response.status = 400;

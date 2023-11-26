@@ -51,7 +51,7 @@ const UserService = {
   create: async (data: UserSchemaCreate): Promise<CreateResponse> => {
       try {
       await dbClient.query(
-        "INSERT INTO users (firstName, lastName, email, password, account, isCdu, cduAcceptedAt, registerAt, roleId) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)",
+        "INSERT INTO users (first_name, last_name, email, password, account, is_cdu, cdu_accepted_at, register_at, role_id) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)",
         [
           data.firstName,
           data.lastName,
@@ -71,7 +71,7 @@ const UserService = {
   updateUserRoleById: async (data: UserSchemaRoleUpdate): Promise<UpdateByIdResponse> => {
       try {
       await dbClient.query(
-        "UPDATE users SET roleId = ?, updated_at = NOW() WHERE id = ?",
+        "UPDATE users SET role_id = ?, updated_at = NOW() WHERE id = ?",
         [data.roleId, data.id]
       );
       return { success: true };
@@ -82,8 +82,8 @@ const UserService = {
   updateUserInfoById: async (data: UserSchemaInfoUpdate): Promise<UpdateByIdResponse> => {
     const updates: string[] = [];
 
-    if (data.firstName) updates.push(`firstName = '${data.firstName}'`);
-    if (data.lastName) updates.push(`lastName = '${data.lastName}'`);
+    if (data.firstName) updates.push(`first_name = '${data.firstName}'`);
+    if (data.lastName) updates.push(`last_name = '${data.lastName}'`);
     if (data.email) updates.push(`email = '${data.email}'`);
 
     if (updates.length === 0) {
@@ -106,7 +106,7 @@ const UserService = {
       try { 
       await dbClient.query(
         "UPDATE users SET account = ?, updated_at = NOW() WHERE id = ?",
-        [data.newAccountValue, data.id]
+        [data.account, data.id]
       );
       return { success: true };
     } catch (error) {

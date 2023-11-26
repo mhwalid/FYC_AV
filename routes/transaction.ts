@@ -6,6 +6,6 @@ const router = new Router();
 router
     .get('/all', TransactionController.getAllTransactions)
     .get("/:id", TransactionController.getTransactionById)
-    .post("/create", validateJwtMiddleware,  TransactionController.createTransaction)
+    .post("/create", TransactionController.createTransaction)
 
 export default router;

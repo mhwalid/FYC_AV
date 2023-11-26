@@ -7,9 +7,9 @@ router
     .get('/all', UserController.getAllUsers)
     .get("/:id", UserController.getUserById)
     .post("/create", UserController.createUser)
-    .put("/info/:id", UserController.updateUserInfo)
-    .put("/account/:id", UserController.updateUserAccount)
-    .put("/role/:id", UserController.updateUserRole)
+    .put("/:id/info", UserController.updateUserInfo)
+    .put("/:id/account", UserController.updateUserAccount)
+    .put("/:id/role", UserController.updateUserRole)
     .delete("/:id", UserController.deleteUser)
 
 export default router;

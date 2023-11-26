@@ -21,7 +21,7 @@ const AuthentificationService = {
       const hashedPassword = await bcrypt.hash(data.password, salt);
 
       const query = `
-        INSERT INTO users (firstName, lastName, email, password, account, isCdu, cduAcceptedAt, registerAt, roleId) 
+        INSERT INTO users (first_name, last_name, email, password, account, is_cdu, cdu_acceptedAt, register_at, role_id) 
         VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)
       `;
       const values = [
