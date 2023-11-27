@@ -31,6 +31,7 @@ const AuthentificationController = {
       const data: UserSchemaLogin = await ctx.request.body().value;
       const { email, password } = data;
 
+      // On ne donne pas trop d'information dans le type de retour
       if (!email || !password) {
         ctx.response.status = 400;
         ctx.response.body = { error: "Veuillez fournir un email et un mot de passe" };
@@ -44,10 +45,11 @@ const AuthentificationController = {
         return;
       }
 
+       // On ne donne pas trop d'information dans le type de retour
       const passwordMatch = await bcrypt.compare(password, foundUser.password);
       if (!passwordMatch) {
         ctx.response.status = 400;
-        ctx.response.body = { error: "Mot de passe incorrect" };
+        ctx.response.body = { error: "Informations utilisateur incorrectes" };
         return;
       }
 

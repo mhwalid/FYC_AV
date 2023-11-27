@@ -42,10 +42,9 @@ export interface UserSchemaInfoUpdate {
   firstName?: string;
   lastName?: string;
   email?: string;
-  password?: string;
 }
 
 export interface UserSchemaAccountUpdate {
   id: number;
-  newAccountValue: number;
+  account: number;
 }

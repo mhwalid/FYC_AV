@@ -8,7 +8,6 @@ interface CustomContext extends Context {
   };
 }
 
-
 const RoleController = {
   async getAllRoles(ctx: Context) {
     try {
