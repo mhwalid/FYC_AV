@@ -1,18 +1,6 @@
 import dbClient from "../database.connectDB.ts";
 import { UserSchema, UserSchemaCreate, UserSchemaAccountUpdate, UserSchemaInfoUpdate, UserSchemaRoleUpdate } from "../schema/usersSchema.ts";
 
-interface DeleteByIdResponse {
-  success: boolean;
-}
-
-interface CreateResponse {
-  success: boolean;
-}
-
-interface UpdateByIdResponse {
-  success: boolean;
-}
-
 const UserService = {
   findAll: async (): Promise<UserSchema[]> => {
     try {
@@ -39,16 +27,16 @@ const UserService = {
       throw new Error(`Error while fetching user by Email: ${error.message}`);
     }
   },
-  deleteById: async (id: number): Promise<DeleteByIdResponse> => {
+  deleteById: async (id: number): Promise<boolean> => {
     try {
       await dbClient.query("DELETE FROM users WHERE id = ?", [id]);
-      return { success: true };
+      return true;
     } catch (error) {
       throw new Error(`Error while deleting user by Id: ${error.message}`);
     }
     },
   
-  create: async (data: UserSchemaCreate): Promise<CreateResponse> => {
+  create: async (data: UserSchemaCreate): Promise<boolean> => {
       try {
       await dbClient.query(
         "INSERT INTO users (first_name, last_name, email, password, account, is_cdu, cdu_accepted_at, register_at, role_id) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)",
@@ -63,23 +51,23 @@ const UserService = {
           data.roleId,
         ]
       );
-      return { success: true };
+      return true;
     } catch (error) {
       throw new Error(`Error while creating user: ${error.message}`);
     }
   },
-  updateUserRoleById: async (data: UserSchemaRoleUpdate): Promise<UpdateByIdResponse> => {
+  updateUserRoleById: async (data: UserSchemaRoleUpdate): Promise<boolean> => {
       try {
       await dbClient.query(
         "UPDATE users SET role_id = ?, updated_at = NOW() WHERE id = ?",
         [data.roleId, data.id]
       );
-      return { success: true };
+      return true;
     } catch (error) {
       throw new Error(`Error while updating user role by Id: ${error.message}`);
     }
   },
-  updateUserInfoById: async (data: UserSchemaInfoUpdate): Promise<UpdateByIdResponse> => {
+  updateUserInfoById: async (data: UserSchemaInfoUpdate): Promise<boolean> => {
     const updates: string[] = [];
 
     if (data.firstName) updates.push(`first_name = '${data.firstName}'`);
@@ -87,7 +75,7 @@ const UserService = {
     if (data.email) updates.push(`email = '${data.email}'`);
 
     if (updates.length === 0) {
-      return { success: false };
+      return false;
     }
 
       try {
@@ -96,7 +84,7 @@ const UserService = {
         `UPDATE users SET ${updateString}, updated_at = NOW() WHERE id = ?`,
         [data.id]
       );
-      return { success: true };
+      return true;
     } catch (error) {
       throw new Error(`Error while updating user info by Id: ${error.message}`);
     }

@@ -16,16 +16,6 @@ interface CustomContext extends Context {
 const UserController = {
   async getAllUsers(ctx: Context) {
     try {
-        // Récupération du verbe HTTP
-        const httpMethod = ctx.request.method;
-
-        // Vérification du verbe HTTP utilisé
-        if (httpMethod !== 'GET') {
-          ctx.response.status = 405; // Méthode non autorisée
-          ctx.response.body = { error: "Méthode HTTP non autorisée pour cette route" };
-          return;
-        }
-       
       const users = await UserService.findAll();
       ctx.response.status = 200;
       ctx.response.body = users;
@@ -39,12 +29,6 @@ const UserController = {
   async getUserById(ctx: CustomContext) {
     try {
       const userId = ctx.params.id;
-
-      if (!userId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID de l'utilisateur manquant dans les paramètres de l'URL" };
-        return;
-      }
 
       const result = await UserService.findById(parseInt(userId));
       if (!result) {
@@ -66,12 +50,6 @@ const UserController = {
     try {
       const userId = ctx.params.id;
 
-      if (!userId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID de l'utilisateur manquant dans les paramètres de l'URL" };
-        return;
-      }
-
       const result = await UserService.deleteById(parseInt(userId));
       ctx.response.status = 200;
       ctx.response.body = result;
@@ -88,7 +66,6 @@ const UserController = {
 
       // Vérification si l'e-mail existe déjà
       const existingUser = await UserService.findByEmail(data.email);
-      console.log(existingUser);
       
       if (existingUser) {
         ctx.response.status = 400;
@@ -109,12 +86,6 @@ const UserController = {
   async updateUserRole(ctx: CustomContext) {
     try {
       const userId = ctx.params.id;
-
-      if (!userId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID de l'utilisateur manquant dans les paramètres de l'URL" };
-        return;
-      }
 
       const data: UserSchemaRoleUpdate = await ctx.request.body().value;
       data.id = parseInt(userId);
@@ -147,12 +118,6 @@ const UserController = {
     try {
       const userId = ctx.params.id;
 
-      if (!userId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID de l'utilisateur manquant dans les paramètres de l'URL" };
-        return;
-      }
-
       const data: UserSchemaInfoUpdate = await ctx.request.body().value;
       data.id = parseInt(userId);
 
@@ -165,12 +130,6 @@ const UserController = {
       }
 
       const result = await UserService.updateUserInfoById(data);
-
-      if (!result.success) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "Aucune donnée mise à jour fournie" };
-        return;
-      }
 
       ctx.response.status = 200;
       ctx.response.body = result;
@@ -185,12 +144,6 @@ const UserController = {
     try {
       const userId = ctx.params.id;
 
-      if (!userId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID de l'utilisateur manquant dans les paramètres de l'URL" };
-        return;
-      }
-
       const data: UserSchemaAccountUpdate = await ctx.request.body().value;
       data.id = parseInt(userId);
 
@@ -203,11 +156,6 @@ const UserController = {
       }
 
       const result = await UserService.updateUserAccountById(data);
-      if (!result.success) {
-        ctx.response.status = 404;
-        ctx.response.body = { error: "Utilisateur non trouvé" };
-        return;
-      }
 
       ctx.response.status = 200;
       ctx.response.body = result;

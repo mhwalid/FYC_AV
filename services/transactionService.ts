@@ -1,22 +1,6 @@
 import dbClient from "../database.connectDB.ts";
 import { TransactionSchema, TransactionSchemaCreate } from "../schema/transactionsSchema.ts";
 
-interface FindByIdResponse {
-  transaction: TransactionSchema | null;
-}
-
-interface DeleteByIdResponse {
-  success: boolean;
-}
-
-interface CreateResponse {
-  success: boolean;
-}
-
-interface UpdateByIdResponse {
-  success: boolean;
-}
-
 const TransactionService = {
   findAll: async (): Promise<TransactionSchema[]> => {
     try {
@@ -34,13 +18,13 @@ const TransactionService = {
       throw new Error(`Error while fetching transaction by Id: ${error.message}`);
     }
   },
-  create: async (data: TransactionSchemaCreate): Promise<CreateResponse> => {
+  create: async (data: TransactionSchemaCreate): Promise<boolean> => {
     try {
       await dbClient.query(
         "INSERT INTO transactions (volume, type_transaction, transacted_at, user_id, share_price_id) VALUES (?, ?, NOW(), ?, ?)",
         [data.volume, data.typeTransaction, data.userId, data.sharePriceId]
       );
-      return { success: true };
+      return true;
     } catch (error) {
       throw new Error(`Error while creating transaction: ${error.message}`);
     }

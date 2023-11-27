@@ -24,12 +24,6 @@ const RoleController = {
   async getRoleById(ctx: CustomContext) {
     try { 
       const roleId = ctx.params.id;
-     
-      if (!roleId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID du rôle manquant dans les paramètres de l'URL" };
-        return;
-      }
 
       const result = await RoleService.findById(parseInt(roleId));
       if (!result) {
@@ -72,12 +66,6 @@ const RoleController = {
     try {
       const roleId = ctx.params.id;
 
-      if (!roleId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID du rôle manquant dans les paramètres de l'URL" };
-        return;
-      }
-
       const data: RoleSchemaUpdate = await ctx.request.body().value;
       data.id = parseInt(roleId);
 
@@ -108,12 +96,6 @@ const RoleController = {
   async deleteRole(ctx: CustomContext) {
     try {
       const roleId = ctx.params.id;
-
-      if (!roleId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID du rôle manquant dans les paramètres de l'URL" };
-        return;
-      }
 
       const result = await RoleService.deleteById(parseInt(roleId));
       ctx.response.status = 200;

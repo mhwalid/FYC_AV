@@ -5,17 +5,8 @@ import dbClient from "../database.connectDB.ts";
 import { UserSchemaLogin, UserSchemaCreate } from '../schema/usersSchema.ts'
 import UserService from "./userService.ts";
 
-
-interface RegisterResponse {
-  success: boolean;
-}
-
-interface LoginResponse {
-  jwtToken: string;
-}
-
 const AuthentificationService = {
-  async register(data: UserSchemaCreate): Promise<RegisterResponse> {
+  async register(data: UserSchemaCreate): Promise<boolean> {
     try {
       const salt = await bcrypt.genSalt(8);
       const hashedPassword = await bcrypt.hash(data.password, salt);
@@ -36,14 +27,14 @@ const AuthentificationService = {
       ];
 
       await dbClient.query(query, values);
-      return { success: true };
+      return true;
     } catch (error) {
       throw new Error(`Error while creating user: ${error.message}`);
     }
   },
 
 
-  async login(userLogin: UserSchemaLogin): Promise<LoginResponse> {
+  async login(userLogin: UserSchemaLogin): Promise<string> {
     try {
 
     const { email, password } = userLogin;
@@ -60,7 +51,7 @@ const AuthentificationService = {
 
     const payload = { foundUserId: foundUser.id };
     const jwtToken = await create({ alg: "HS512", typ: "JWT" }, { payload }, key);
-      return { jwtToken: jwtToken };
+      return jwtToken;
     } catch (error) {
       throw new Error(`Error while login user: ${error.message}`);
     }

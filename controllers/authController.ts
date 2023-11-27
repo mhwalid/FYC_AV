@@ -31,13 +31,6 @@ const AuthentificationController = {
       const data: UserSchemaLogin = await ctx.request.body().value;
       const { email, password } = data;
 
-      // On ne donne pas trop d'information dans le type de retour
-      if (!email || !password) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "Veuillez fournir un email et un mot de passe" };
-        return;
-      }
-
       const foundUser = await UserService.findByEmail(email);
       if (!foundUser || !foundUser?.password) {
         ctx.response.status = 400;
