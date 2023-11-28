@@ -1,50 +1,87 @@
 import dbClient from "../database.connectDB.ts";
 import { TransactionSchema, TransactionSchemaCreate } from "../schema/transactionsSchema.ts";
+import {
+  FindResponse,
+  FindOneResponse,
+  CreateResponse,
+  InfoResponse
+} from "../schema/utils/responsesSchema.ts";
+import userService from "./userService.ts"
+import sharePriceService from "./sharePriceService.ts"
 
-interface FindByIdResponse {
-  transaction: TransactionSchema | null;
-}
-
-interface DeleteByIdResponse {
-  success: boolean;
-}
-
-interface CreateResponse {
-  success: boolean;
-}
-
-interface UpdateByIdResponse {
-  success: boolean;
-}
-
-const TransactionService = {
-  findAll: async (): Promise<TransactionSchema[]> => {
+const transactionService = {
+  findAll: async (): Promise<FindResponse<TransactionSchema>> => {
     try {
       const result = await dbClient.query(`SELECT * FROM transactions`);
-      return result as TransactionSchema[];
+      return {
+        success: true,
+        message: "Liste des transactions récupérée avec succès",
+        httpCode: 200,
+        data: result as TransactionSchema[],
+      };
     } catch (error) {
       throw new Error(`Error while fetching all transactions: ${error.message}`);
     }
   },
-  findById: async (id: number): Promise<TransactionSchema | null> => {
+
+  findById: async (id: number): Promise<FindOneResponse<TransactionSchema>> => {
     try {
-      const result = await dbClient.query("SELECT * FROM transactions WHERE id = ?", [id]);
-      return result.length > 0 ? result[0] as TransactionSchema : null as null;
+      const transaction = await dbClient.query("SELECT * FROM transactions WHERE id = ?", [id]);
+      if (transaction.length === 0) {
+        return {
+          success: false,
+          message: "La transaction n'existe pas",
+          httpCode: 404,
+          data: null,
+        };
+      }
+      return {
+        success: true,
+        message: "Transaction récupérée avec succès",
+        httpCode: 200,
+        data: transaction[0] as TransactionSchema,
+      };
     } catch (error) {
       throw new Error(`Error while fetching transaction by Id: ${error.message}`);
     }
   },
-  create: async (data: TransactionSchemaCreate): Promise<CreateResponse> => {
+
+  create: async (data: TransactionSchemaCreate): Promise<CreateResponse<TransactionSchema>> => {
     try {
-      await dbClient.query(
+      const userExists = await userService.findById(data.userId);
+      if (!userExists.success) {
+        return {
+          success: false,
+          message: userExists.message,
+          httpCode: userExists.httpCode,
+          info: userExists.data as null
+        };
+      }
+
+      const sharePriceExists = await sharePriceService.findById(data.sharePriceId);
+      if (!sharePriceExists.success) {
+        return {
+          success: false,
+          message: sharePriceExists.message,
+          httpCode: sharePriceExists.httpCode,
+          info: sharePriceExists.data as null
+        };
+      }
+
+      const result = await dbClient.query(
         "INSERT INTO transactions (volume, type_transaction, transacted_at, user_id, share_price_id) VALUES (?, ?, NOW(), ?, ?)",
         [data.volume, data.typeTransaction, data.userId, data.sharePriceId]
       );
-      return { success: true };
+      return {
+        success: true,
+        message: "Transaction créée avec succès",
+        httpCode: 201,
+        info: result as InfoResponse,
+      };
     } catch (error) {
       throw new Error(`Error while creating transaction: ${error.message}`);
     }
   },
 };
 
-export default TransactionService;
+export default transactionService;

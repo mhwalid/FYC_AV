@@ -1,6 +1,6 @@
 import { Context } from "https://deno.land/x/oak/mod.ts";
-import SharePriceService from "../services/sharePriceService.ts";
-import { SharePriceSchemaCreate, SharePriceSchemaUpdate } from "../schema/sharePricesSchema.ts";
+import sharePriceService from "../services/sharePriceService.ts";
+import { SharePriceSchemaCreate, SharePriceSchemaUpdate } from '../schema/sharePricesSchema.ts';
 
 interface CustomContext extends Context {
   params: {
@@ -11,120 +11,149 @@ interface CustomContext extends Context {
 const SharePriceController = {
   async getAllSharePrices(ctx: Context) {
     try {
-      const sharePrices = await SharePriceService.findAll();
-      ctx.response.status = 200;
-      ctx.response.body = sharePrices;
+      if (ctx.request.method !== 'GET') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
+        return;
+      }
+
+      const sharePrices = await sharePriceService.findAll();
+      ctx.response.status = sharePrices.httpCode;
+      ctx.response.body = {
+        success: sharePrices.success,
+        message: sharePrices.message,
+        sharePrices: sharePrices.data,
+      };
     } catch (error) {
-      console.error("Error in getAllSharePrices method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+        sharePrices: [],
+      };
     }
   },
 
   async getSharePriceById(ctx: CustomContext) {
     try {
+      if (ctx.request.method !== 'GET') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
+        return;
+      }
+
       const sharePriceId = ctx.params.id;
-
-      if (!sharePriceId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID du prix d'actions manquant dans les paramètres de l'URL" };
-        return;
-      }
-
-      const result = await SharePriceService.findById(parseInt(sharePriceId));
-      if (!result) {
-        ctx.response.status = 404;
-        ctx.response.body = { error: "Prix d'actions non trouvé" };
-        return;
-      }
-
-      ctx.response.status = 200;
-      ctx.response.body = result;
+      const sharePrice = await sharePriceService.findById(Number(sharePriceId));
+      ctx.response.status = sharePrice.httpCode;
+      ctx.response.body = {
+        success: sharePrice.success,
+        message: sharePrice.message,
+        sharePrice: sharePrice.data,
+      };
     } catch (error) {
-      console.error("Error in getSharePriceById method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+        sharePrice: null,
+      };
     }
   },
 
   async createSharePrice(ctx: Context) {
     try {
-      const data: SharePriceSchemaCreate = await ctx.request.body().value;
-      
-      const nameExists = await SharePriceService.checkIfNomExists(data.name);
-      if (nameExists) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "Ce nom de prix d'actions est déjà utilisé" };
+      if (ctx.request.method !== 'POST') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
         return;
       }
 
-      const result = await SharePriceService.create(data);
-      ctx.response.status = 201;
-      ctx.response.body = result;
+      const sharePriceData: SharePriceSchemaCreate = await ctx.request.body().value;
+
+      const createdSharePrice = await sharePriceService.create(sharePriceData);
+      ctx.response.status = createdSharePrice.httpCode;
+      ctx.response.body = {
+        success: createdSharePrice.success,
+        message: createdSharePrice.message,
+        sharePrice: createdSharePrice.info,
+      };
     } catch (error) {
-      console.error("Error in createSharePrice method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+        sharePrice: null,
+      };
     }
   },
 
   async updateSharePrice(ctx: CustomContext) {
     try {
+      if (ctx.request.method !== 'PUT') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
+        return;
+      }
+
       const sharePriceId = ctx.params.id;
+      const sharePriceData: SharePriceSchemaUpdate = await ctx.request.body().value;
+      sharePriceData.id = Number(sharePriceId);
 
-      if (!sharePriceId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID du prix d'actions manquant dans les paramètres de l'URL" };
-        return;
-      }
-
-      const data: SharePriceSchemaUpdate = await ctx.request.body().value;
-      data.id = parseInt(sharePriceId);
-
-      const nameExists = await SharePriceService.checkIfNomExists(data.name);
-      if (nameExists) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "Ce nom de prix d'actions est déjà utilisé" };
-        return;
-      }
-
-      const existingSharePrice = await SharePriceService.findById(data.id);
-      if (!existingSharePrice) {
-        ctx.response.status = 404;
-        ctx.response.body = { error: "Prix d'actions non trouvé" };
-        return;
-      }
-
-      const result = await SharePriceService.updateById(data);
-      ctx.response.status = 200;
-      ctx.response.body = result;
+      const updatedSharePrice = await sharePriceService.updateById(sharePriceData);
+      ctx.response.status = updatedSharePrice.httpCode;
+      ctx.response.body = {
+        success: updatedSharePrice.success,
+        message: updatedSharePrice.message,
+        sharePrice: updatedSharePrice.data,
+      };
     } catch (error) {
-      console.error("Error in updateSharePrice method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+        sharePrice: null,
+      };
     }
   },
 
   async deleteSharePrice(ctx: CustomContext) {
     try {
-      const sharePriceId = ctx.params.id;
-  
-      if (!sharePriceId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID du prix d'actions manquant dans les paramètres de l'URL" };
+      if (ctx.request.method !== 'DELETE') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
         return;
       }
-  
-      const result = await SharePriceService.deleteById(parseInt(sharePriceId));
-      ctx.response.status = 200;
-      ctx.response.body = result;
+
+      const sharePriceId = ctx.params.id;
+      const deletionResult = await sharePriceService.deleteById(Number(sharePriceId));
+      ctx.response.status = deletionResult.httpCode;
+      ctx.response.body = {
+        success: deletionResult.success,
+        message: deletionResult.message,
+      };
     } catch (error) {
-      console.error("Error in deleteSharePrice method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+      };
     }
   },
-
 };
 
 export default SharePriceController;

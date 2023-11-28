@@ -8,11 +8,19 @@ import transactionRouter from "./routes/transaction.ts";
 import sharePriceRouter from "./routes/shareprice.ts";
 import userRouter from "./routes/user.ts";
 
+import RequestLimitMiddleware from "./middlewares/check-all-requests.ts"
+
 const env = config();
 const { PORT, HOSTNAME } = env;
 
 const app = new Application();
 const router = new Router();
+
+const maxRequests = 100; // Nombre maximal de requêtes autorisées
+const requestDuration = 60 * 1000; // Durée de la fenêtre de requêtes en millisecondes (1 minute)
+// Création du middleware avec les paramètres personnalisés
+const requestLimitMiddleware = RequestLimitMiddleware("server", maxRequests, requestDuration);
+app.use(requestLimitMiddleware);
 
 router.use("/auth", authRouter.routes());
 router.use("/role", roleRouter.routes());

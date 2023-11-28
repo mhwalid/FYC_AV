@@ -1,17 +1,22 @@
 import * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
 import { create } from "https://deno.land/x/djwt@v2.9.1/mod.ts";
 import { key } from "../utils/apiKeys.ts";
-import dbClient from "../database.connectDB.ts";
 import { UserSchemaLogin, UserSchemaCreate } from '../schema/usersSchema.ts'
-import UserService from "./userService.ts";
+import userService from "./userService.ts";
 
 
 interface RegisterResponse {
-  success: boolean;
+  success: boolean,
+  message: string,
+  httpCode: number,
+  jwtToken: string | undefined;
 }
 
 interface LoginResponse {
-  jwtToken: string;
+  jwtToken: string | undefined;
+  success: boolean,
+  message: string,
+  httpCode: number
 }
 
 const AuthentificationService = {
@@ -20,47 +25,64 @@ const AuthentificationService = {
       const salt = await bcrypt.genSalt(8);
       const hashedPassword = await bcrypt.hash(data.password, salt);
 
-      const query = `
-        INSERT INTO users (first_name, last_name, email, password, account, is_cdu, cdu_acceptedAt, register_at, role_id) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)
-      `;
-      const values = [
-        data.firstName,
-        data.lastName,
-        data.email,
-        hashedPassword,
-        data.account,
-        data.isCdu,
-        data.cduAcceptedAt,
-        data.roleId,
-      ];
+      const userData = {
+        ...data,
+        password: hashedPassword,
+        cduAcceptedAt: data.isCdu ? new Date() : null, // Assuming isCdu is a boolean
+      } as UserSchemaCreate;
 
-      await dbClient.query(query, values);
-      return { success: true };
+      const createUserResponse = await userService.create(userData);
+
+      if (createUserResponse.success) {
+        const payload = { foundUserId: createUserResponse.info?.lastInsertId};
+        const jwtToken = await create({ alg: "HS512", typ: "JWT" }, { payload }, key);
+
+        return {
+          success: true,
+          message: "Enregistrement de l'utilisateur effectué avec succès",
+          httpCode: 200,
+          jwtToken: jwtToken
+        };
+      } else {
+        return {
+          success: false,
+          message: createUserResponse.message,
+          httpCode: 400,
+          jwtToken: undefined
+        };
+      }
     } catch (error) {
-      throw new Error(`Error while creating user: ${error.message}`);
+      throw new Error(`Error while registering user: ${error.message}`);
     }
   },
 
 
   async login(userLogin: UserSchemaLogin): Promise<LoginResponse> {
     try {
+      const resultExistUserEmail = await userService.findByEmail(userLogin.email);
+      let passwordMatch = false;
+      if (resultExistUserEmail.data !== null) {
+        passwordMatch = await bcrypt.compare(userLogin.password, resultExistUserEmail.data.password);
+      }
+     
+      if (!resultExistUserEmail.success || !passwordMatch) {
+        return {
+            success: false,
+            message: "Erreur lors de la connexion : Informations invalides",
+            httpCode: 400,
+            jwtToken: undefined
+        }
+      }
 
-    const { email, password } = userLogin;
-    const foundUser = await UserService.findByEmail(email);
+      const payload = { foundUserId: resultExistUserEmail.data.id };
+      const jwtToken = await create({ alg: "HS512", typ: "JWT" }, { payload }, key);
 
-    if (!foundUser || !foundUser?.password) {
-      throw new Error('Informations utilisateur incorrectes');
+      return {
+        success: true,
+        message: "Connexion réussi",
+        httpCode: 200,
+        jwtToken: jwtToken
     }
-
-    const passwordMatch = await bcrypt.compare(password, foundUser.password);
-    if (!passwordMatch) {
-      throw new Error('Mot de passe incorrect');
-    }
-
-    const payload = { foundUserId: foundUser.id };
-    const jwtToken = await create({ alg: "HS512", typ: "JWT" }, { payload }, key);
-      return { jwtToken: jwtToken };
     } catch (error) {
       throw new Error(`Error while login user: ${error.message}`);
     }

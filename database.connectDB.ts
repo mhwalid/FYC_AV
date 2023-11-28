@@ -3,9 +3,6 @@ import { load } from "https://deno.land/std@0.202.0/dotenv/mod.ts";
 
 const envVars = await load();
 
-console.log(envVars.DATABASE_HOST);
-
-
 const config: ClientConfig = {
   hostname: envVars.DATABASE_HOST || "127.0.0.1",
   username: envVars.DATABASE_USER || "root",
@@ -17,7 +14,6 @@ const config: ClientConfig = {
 const dbClient = new Client();
 
 try {
-  
   await dbClient.connect(config);
   console.log("Database connected!");
 } catch (e) {

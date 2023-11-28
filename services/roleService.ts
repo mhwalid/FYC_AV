@@ -1,42 +1,22 @@
 import dbClient from "../database.connectDB.ts";
 import { RoleSchema, RoleSchemaCreate, RoleSchemaUpdate } from "../schema/rolesSchema.ts";
+import {
+  FindResponse,
+  FindOneResponse,
+  DeleteByIdResponse,
+  CreateResponse,
+  UpdateByIdResponse,
+  InfoResponse
+} from "../schema/utils/responsesSchema.ts";
 
-// Interface spécifique à chaque opération CRUD pour RoleSchema
-interface FindAllResponse {
-  success: boolean;
-  message: string;
-  data: RoleSchema[];
-}
-
-interface FindOneResponse {
-  success: boolean;
-  message: string;
-  data: RoleSchema;
-}
-
-interface DeleteByIdResponse {
-  success: boolean;
-  message: string;
-  datas: RoleSchema[];
-}
-
-interface CreateResponse {
-  success: boolean;
-  message: string;
-}
-
-interface UpdateByIdResponse {
-  success: boolean;
-  message: string;
-}
-
-const RoleService = {
-  findAll: async (): Promise<FindAllResponse> => {
+const roleService = {
+  findAll: async (): Promise<FindResponse<RoleSchema>> => {
     try {
       const result = await dbClient.query(`SELECT * FROM roles`);
       return {
         success: true,
         message: "Liste des roles récupèré avec succès",
+        httpCode: 200,
         data: result as RoleSchema[]
       }
     } catch (error) {
@@ -44,24 +24,45 @@ const RoleService = {
     }
   },
 
-  findById: async (id: number): Promise< FindOneResponse | null> => {
+  findById: async (id: number): Promise<FindOneResponse<RoleSchema>> => {
     try {
-      const result = await dbClient.query("SELECT * FROM roles WHERE id = ?", [id]);
+      const role = await dbClient.query("SELECT * FROM roles WHERE id = ?", [id]);
+      if (role.length === 0) {
+        return {
+          success: false,
+          message: "Le role n'existe pas",
+          httpCode: 404,
+          data: null
+        }
+      }
       return {
         success: true,
-        message: "Liste des roles récupèré avec succès",
-        data: result as RoleSchema
+        message: "Role récupèré avec succès",
+        httpCode: 200,
+        data: role as RoleSchema
       }
     } catch (error) {
       throw new Error(`Error while fetching role by Id: ${error.message}`);
     }
   },
 
-  checkIfNameExists: async (name: string): Promise<boolean> => {
+  checkIfNameNotExists: async (name: string): Promise<FindOneResponse<RoleSchema>> => {
     try {
-      const existingRoleQuery = `SELECT * FROM roles WHERE name = ?`;
-      const existingRole = await dbClient.query(existingRoleQuery, [name]);
-      return existingRole.length > 0;
+      const existingRole = await dbClient.query(`SELECT * FROM roles WHERE name = ?`, [name]);      
+      if (existingRole.length > 0) {
+        return {
+          success: false,
+          message: "Un role avec le même nom existe déjà",
+          httpCode: 409 ,
+          data: existingRole[0] as RoleSchema
+        }
+      }
+      return {
+        success: true,
+        message: "Le role n'existe pas",
+        httpCode: 404,
+        data: null
+      }
     } catch (error) {
       throw new Error(`Error while checking role name existence: ${error.message}`);
     }
@@ -69,48 +70,106 @@ const RoleService = {
 
   deleteById: async (id: number): Promise<DeleteByIdResponse> => {
     try {
-      // Vérifier si le rôle est utilisé par un utilisateur
-      const isRoleInUse = await dbClient.query("SELECT COUNT(*) as count FROM users WHERE role_id = ?", [id]);
-
-      if (isRoleInUse[0].count > 0) {
-        return { success: false, error: "Ce rôle est utilisé par un ou plusieurs utilisateurs et ne peut pas être supprimé." };
+      const resultExistRoleId = await roleService.findById(id)
+      if (!resultExistRoleId.success) {
+        return {
+          success: false,
+          message: resultExistRoleId.message,
+          httpCode: resultExistRoleId.httpCode,
         }
+      }
+
+      // Vérifier si le rôle est utilisé par un utilisateur
+      const isRoleInUse = await roleService.isRoleInUse(id)
+      if (isRoleInUse) {
+        return {
+          success: false,
+          message: "Erreur lors de la suppresion du role. Il est utilisé par au moins User",
+          httpCode: 400,
+        };
+      }
       
       await dbClient.query("DELETE FROM roles WHERE id = ?", [id]);
-      return { success: true , error: "Le role a été supprimé avec success"};
+      
+      return {
+        success: true,
+        message: "Le role a été supprimé avec succès",
+        httpCode: 200,
+      }
     } catch (error) {
       throw new Error(`Error while deleting role by Id: ${error.message}`);
     }
   },
   
-  create: async (data: RoleSchemaCreate): Promise<CreateResponse> => {
+  create: async (data: RoleSchemaCreate): Promise<CreateResponse<RoleSchema>> => {
     try { 
-      await dbClient.execute(
+      const resultExistRoleName = await roleService.checkIfNameNotExists(data.name)
+      if (!resultExistRoleName.success) {
+        return {
+          success: false,
+          message: resultExistRoleName.message,
+          httpCode: resultExistRoleName.httpCode,
+          info: resultExistRoleName.data as RoleSchema
+        }
+      }
+      
+      const roleCreate = await dbClient.execute(
         "INSERT INTO roles (name, created_at) VALUES (?, NOW())",
         [data.name]
       );
 
-      return { success: true };
+      return {
+        success: true,
+        message: "Role crée avec succès",
+        httpCode: 201,
+        info: roleCreate as InfoResponse
+      }
     } catch (error) {
       throw new Error(`Error while creating role: ${error.message}`);
     }
   },
 
-  updateById: async(data: RoleSchemaUpdate): Promise<UpdateByIdResponse> => {
+  updateById: async(data: RoleSchemaUpdate): Promise<UpdateByIdResponse<RoleSchema>> => {
     try {
-      await dbClient.query("UPDATE roles SET name = ?, updated_at = NOW() WHERE id = ?", [
+      const resultExistRoleName = await roleService.checkIfNameNotExists(data.name)
+      if (!resultExistRoleName.success) {
+        return {
+          success: false,
+          message: resultExistRoleName.message,
+          httpCode: resultExistRoleName.httpCode,
+          data: resultExistRoleName.data as RoleSchema
+        }
+      }
+
+      const resultExistRoleId = await roleService.findById(data.id)
+      if (!resultExistRoleId.success) {
+        return {
+          success: false,
+          message: resultExistRoleId.message,
+          httpCode: resultExistRoleId.httpCode,
+          data: resultExistRoleId.data as null
+        }
+      }
+      
+      const roleUpdate = await dbClient.query("UPDATE roles SET name = ?, updated_at = NOW() WHERE id = ?", [
         data.name,
         data.id,
       ]);
 
-      return { success: true };
+      return {
+        success: true,
+        message: "Role mis à jour avec succès",
+        httpCode: 200,
+        data: roleUpdate as InfoResponse
+      }
     } catch (error) {
       throw new Error(`Error while updating role by Id: ${error.message}`);
     }
   },
-  isRoleInUse: async (roleId: number): Promise<boolean> => {
+
+  isRoleInUse: async (id: number): Promise<boolean> => {
     try {
-      const result = await dbClient.query("SELECT COUNT(*) as count FROM users WHERE role_id = ?", [roleId]);
+      const result = await dbClient.query("SELECT COUNT(*) as count FROM users WHERE role_id = ?", [id]);
       return result[0].count > 0;
     } catch (error) {
       throw new Error(`Error while checking if role is in use: ${error.message}`);
@@ -118,4 +177,4 @@ const RoleService = {
   },
 };
 
-export default RoleService;
+export default roleService; 

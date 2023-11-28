@@ -1,67 +1,69 @@
-import { Context } from "https://deno.land/x/oak/mod.ts";
-import * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
-import UserService from "../services/userService.ts";
-import AuthentificationService from "../services/authService.ts";
-import { UserSchemaLogin, UserSchemaCreate } from '../schema/usersSchema.ts'
+import { Context  } from "https://deno.land/x/oak/mod.ts";
+import AuthenticationService from "../services/authService.ts";
+import { UserSchemaCreate, UserSchemaLogin } from '../schema/usersSchema.ts';
 
-const AuthentificationController = {
+const AuthController = {
   async register(ctx: Context) {
     try {
-      const data: UserSchemaCreate = await ctx.request.body().value;
-
-      const existingUser = await UserService.findByEmail(data.email);
-      if (existingUser) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "Cet email est déjà associé à un utilisateur" };
+      if (ctx.request.method !== 'POST') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
         return;
       }
 
-      const result = await AuthentificationService.register(data);
-      ctx.response.status = 201;
-      ctx.response.body = result;
+      const userData: UserSchemaCreate = await ctx.request.body().value;
+
+      const registrationResponse = await AuthenticationService.register(userData);
+      
+      ctx.response.status = registrationResponse.httpCode;
+      ctx.response.body = {
+        success: registrationResponse.success,
+        message: registrationResponse.message,
+        jwtToken: registrationResponse.jwtToken,
+      };
     } catch (error) {
-      console.error("Error in register method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+        jwtToken: undefined,
+      };
     }
   },
 
   async login(ctx: Context) {
     try {
-      const data: UserSchemaLogin = await ctx.request.body().value;
-      const { email, password } = data;
-
-      // On ne donne pas trop d'information dans le type de retour
-      if (!email || !password) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "Veuillez fournir un email et un mot de passe" };
+      if (ctx.request.method !== 'POST') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
         return;
       }
 
-      const foundUser = await UserService.findByEmail(email);
-      if (!foundUser || !foundUser?.password) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "Informations utilisateur incorrectes" };
-        return;
-      }
+      const userLogin: UserSchemaLogin = await ctx.request.body().value;
 
-       // On ne donne pas trop d'information dans le type de retour
-      const passwordMatch = await bcrypt.compare(password, foundUser.password);
-      if (!passwordMatch) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "Informations utilisateur incorrectes" };
-        return;
-      }
+      const loginResponse = await AuthenticationService.login(userLogin);
 
-      const result = await AuthentificationService.login(data);
-      ctx.response.status = 200;
-      ctx.response.body = result;
+      ctx.response.status = loginResponse.httpCode;
+      ctx.response.body = {
+        success: loginResponse.success,
+        message: loginResponse.message,
+        jwtToken: loginResponse.jwtToken,
+      };
     } catch (error) {
-      console.error("Error in login method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+        jwtToken: undefined,
+      };
     }
   },
 };
 
-export default AuthentificationController;
+export default AuthController;

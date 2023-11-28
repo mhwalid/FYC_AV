@@ -1,129 +1,159 @@
-import { Context } from "https://deno.land/x/oak@v12.6.0/mod.ts";
-import RoleService from "../services/roleService.ts";
-import { RoleSchemaCreate, RoleSchemaUpdate } from "../schema/rolesSchema.ts";
+  import { Context } from "https://deno.land/x/oak/mod.ts";
+  import roleService from "../services/roleService.ts";
+  import { RoleSchemaCreate, RoleSchemaUpdate } from '../schema/rolesSchema.ts';
 
-interface CustomContext extends Context {
-  params: {
-    [key: string]: string;
+  interface CustomContext extends Context {
+    params: {
+      [key: string]: string;
+    };
+  }
+
+  const RoleController = {
+    async getAllRoles(ctx: Context) {
+      try {
+        if (ctx.request.method !== 'GET') {
+          ctx.response.status = 405;
+          ctx.response.body = {
+            success: false,
+            message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+          };
+          return;
+        }
+
+        const roles = await roleService.findAll();
+        ctx.response.status = roles.httpCode;
+        ctx.response.body = {
+          success: roles.success,
+          message: roles.message,
+          roles: roles.data,
+        };
+      } catch (error) {
+        ctx.response.status = 500;
+        ctx.response.body = {
+          success: false,
+          message: error.message,
+          roles: [],
+        };
+      }
+    },
+
+    async getRoleById(ctx: CustomContext) {
+      try {
+        if (ctx.request.method !== 'GET') {
+          ctx.response.status = 405;
+          ctx.response.body = {
+            success: false,
+            message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+          };
+          return;
+        }
+
+        const roleId = ctx.params.id;
+        const role = await roleService.findById(Number(roleId));
+        ctx.response.status = role.httpCode;
+        ctx.response.body = {
+          success: role.success,
+          message: role.message,
+          role: role.data,
+        };
+      } catch (error) {
+        ctx.response.status = 500;
+        ctx.response.body = {
+          success: false,
+          message: error.message,
+          role: null,
+        };
+      }
+    },
+
+    async createRole(ctx: Context) {
+      try {
+        if (ctx.request.method !== 'POST') {
+          ctx.response.status = 405;
+          ctx.response.body = {
+            success: false,
+            message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+          };
+          return;
+        }
+
+        const roleData: RoleSchemaCreate =  await ctx.request.body().value;
+
+        const createdRole = await roleService.create(roleData);
+        ctx.response.status = createdRole.httpCode;
+        ctx.response.body = {
+          success: createdRole.success,
+          message: createdRole.message,
+          role: createdRole.info,
+        };
+      } catch (error) {
+        ctx.response.status = 500;
+        ctx.response.body = {
+          success: false,
+          message: error.message,
+          role: null,
+        };
+      }
+    },
+
+    async updateRole(ctx: CustomContext) {
+      try {
+        if (ctx.request.method !== 'PUT') {
+          ctx.response.status = 405;
+          ctx.response.body = {
+            success: false,
+            message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+          };
+          return;
+        }
+
+        const roleId = ctx.params.id;
+        const roleData: RoleSchemaUpdate = await ctx.request.body().value;
+        roleData.id = Number(roleId)
+
+        const updatedRole = await roleService.updateById(roleData);
+        ctx.response.status = updatedRole.httpCode;
+        ctx.response.body = {
+          success: updatedRole.success,
+          message: updatedRole.message,
+          role: updatedRole.data,
+        };
+      } catch (error) {
+        ctx.response.status = 500;
+        ctx.response.body = {
+          success: false,
+          message: error.message,
+          role: null,
+        };
+      }
+    },
+
+    async deleteRole(ctx: CustomContext) {
+      try {
+        if (ctx.request.method !== 'DELETE') {
+          ctx.response.status = 405;
+          ctx.response.body = {
+            success: false,
+            message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+          };
+          return;
+        }
+
+        const roleId = ctx.params.id;
+        const deletionResult = await roleService.deleteById(Number(roleId));
+        ctx.response.status = deletionResult.httpCode;
+        ctx.response.body = {
+          success: deletionResult.success,
+          message: deletionResult.message,
+        };
+      } catch (error) {
+        ctx.response.status = 500;
+        ctx.response.body = {
+          success: false,
+          message: error.message,
+        };
+      }
+    },
   };
-}
 
-const RoleController = {
-  async getAllRoles(ctx: Context) {
-    try {
-      const roles = await RoleService.findAll();
-      ctx.response.status = 200;
-      ctx.response.body = roles;
-    } catch (error) {
-      console.error("Error in getAllRoles method:", error);
-      ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
-    }
-  },
-
-  async getRoleById(ctx: CustomContext) {
-    try { 
-      const roleId = ctx.params.id;
-     
-      if (!roleId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID du rôle manquant dans les paramètres de l'URL" };
-        return;
-      }
-
-      const result = await RoleService.findById(parseInt(roleId));
-      if (!result) {
-        ctx.response.status = 405;
-        ctx.response.body = { error: "Rôle non trouvé" };
-        return;
-      }
-
-      ctx.response.status = 200;
-      ctx.response.body = result;
-    } catch (error) {
-      console.error("Error in getRoleById method:", error);
-      ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error :"};
-    }
-  },
-
-  async createRole(ctx: Context) {
-    try {
-      const data: RoleSchemaCreate = await ctx.request.body().value;
-      
-      const nameExists = await RoleService.checkIfNameExists(data.name);
-      if (nameExists) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "Ce nom de rôle est déjà utilisé" };
-        return;
-      }
-
-      const result = await RoleService.create(data);
-      ctx.response.status = 201;
-      ctx.response.body = result;
-    } catch (error) {
-      console.error("Error in createRole method:", error);
-      ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
-    }
-  },
-
-  async updateRole(ctx: CustomContext) {
-    try {
-      const roleId = ctx.params.id;
-
-      if (!roleId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID du rôle manquant dans les paramètres de l'URL" };
-        return;
-      }
-
-      const data: RoleSchemaUpdate = await ctx.request.body().value;
-      data.id = parseInt(roleId);
-
-      const nameExists = await RoleService.checkIfNameExists(data.name);
-      if (nameExists) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "Ce nom de rôle est déjà utilisé" };
-        return;
-      }
-
-      const existingRole = await RoleService.findById(data.id);
-      if (!existingRole) {
-        ctx.response.status = 404;
-        ctx.response.body = { error: "Rôle non trouvé" };
-        return;
-      }
-
-      const result = await RoleService.updateById(data);
-      ctx.response.status = 200;
-      ctx.response.body = result;
-    } catch (error) {
-      console.error("Error in updateRole method:", error);
-      ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
-    }
-  },
-
-  async deleteRole(ctx: CustomContext) {
-    try {
-      const roleId = ctx.params.id;
-
-      if (!roleId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID du rôle manquant dans les paramètres de l'URL" };
-        return;
-      }
-
-      const result = await RoleService.deleteById(parseInt(roleId));
-      ctx.response.status = 200;
-      ctx.response.body = result;
-    } catch (error) {
-      console.error("Error in deleteRole method:", error);
-      ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
-    }
-  },
-};
-
-export default RoleController;
+  export default RoleController;

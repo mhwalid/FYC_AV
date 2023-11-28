@@ -1,11 +1,11 @@
 import { Context } from "https://deno.land/x/oak/mod.ts";
-import UserService from "../services/userService.ts";
+import userService from "../services/userService.ts";
 import {
   UserSchemaCreate,
-  UserSchemaRoleUpdate,
-  UserSchemaInfoUpdate,
   UserSchemaAccountUpdate,
-} from "../schema/usersSchema.ts";
+  UserSchemaInfoUpdate,
+  UserSchemaRoleUpdate,
+} from '../schema/usersSchema.ts';
 
 interface CustomContext extends Context {
   params: {
@@ -16,205 +16,205 @@ interface CustomContext extends Context {
 const UserController = {
   async getAllUsers(ctx: Context) {
     try {
-        // Récupération du verbe HTTP
-        const httpMethod = ctx.request.method;
+      if (ctx.request.method !== 'GET') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
+        return;
+      }
 
-        // Vérification du verbe HTTP utilisé
-        if (httpMethod !== 'GET') {
-          ctx.response.status = 405; // Méthode non autorisée
-          ctx.response.body = { error: "Méthode HTTP non autorisée pour cette route" };
-          return;
-        }
-       
-      const users = await UserService.findAll();
-      ctx.response.status = 200;
-      ctx.response.body = users;
+      const users = await userService.findAll();
+      ctx.response.status = users.httpCode;
+      ctx.response.body = {
+        success: users.success,
+        message: users.message,
+        users: users.data,
+      };
     } catch (error) {
-      console.error("Error in getAllUsers method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+        users: [],
+      };
     }
   },
 
   async getUserById(ctx: CustomContext) {
     try {
+      if (ctx.request.method !== 'GET') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
+        return;
+      }
+
       const userId = ctx.params.id;
-
-      if (!userId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID de l'utilisateur manquant dans les paramètres de l'URL" };
-        return;
-      }
-
-      const result = await UserService.findById(parseInt(userId));
-      if (!result) {
-        ctx.response.status = 404;
-        ctx.response.body = { error: "Utilisateur non trouvé" };
-        return;
-      }
-      
-      ctx.response.status = 200;
-      ctx.response.body = result;
+      const user = await userService.findById(Number(userId));
+      ctx.response.status = user.httpCode;
+      ctx.response.body = {
+        success: user.success,
+        message: user.message,
+        user: user.data,
+      };
     } catch (error) {
-      console.error("Error in getUserById method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
-    }
-  },
-
-  async deleteUser(ctx: CustomContext) {
-    try {
-      const userId = ctx.params.id;
-
-      if (!userId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID de l'utilisateur manquant dans les paramètres de l'URL" };
-        return;
-      }
-
-      const result = await UserService.deleteById(parseInt(userId));
-      ctx.response.status = 200;
-      ctx.response.body = result;
-    } catch (error) {
-      console.error("Error in deleteUser method:", error);
-      ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+        user: null,
+      };
     }
   },
 
   async createUser(ctx: Context) {
     try {
-      const data: UserSchemaCreate = await ctx.request.body().value;
-
-      // Vérification si l'e-mail existe déjà
-      const existingUser = await UserService.findByEmail(data.email);
-      console.log(existingUser);
-      
-      if (existingUser) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "Cet email est déjà associé à un utilisateur" };
+      if (ctx.request.method !== 'POST') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
         return;
       }
 
-      const result = await UserService.create(data);
-      ctx.response.status = 201;
-      ctx.response.body = result;
+      const userData: UserSchemaCreate = await ctx.request.body().value;
+
+      const createdUser = await userService.create(userData);
+      ctx.response.status = createdUser.httpCode;
+      ctx.response.body = {
+        success: createdUser.success,
+        message: createdUser.message,
+        user: createdUser.info,
+      };
     } catch (error) {
-      console.error("Error in createUser method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+        user: null,
+      };
     }
   },
 
-  async updateUserRole(ctx: CustomContext) {
+  async updateUserRole(ctx: Context) {
     try {
-      const userId = ctx.params.id;
-
-      if (!userId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID de l'utilisateur manquant dans les paramètres de l'URL" };
+      if (ctx.request.method !== 'PUT') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
         return;
       }
 
-      const data: UserSchemaRoleUpdate = await ctx.request.body().value;
-      data.id = parseInt(userId);
+      const userData: UserSchemaRoleUpdate = await ctx.request.body().value;
 
-      const existingUser = await UserService.findById(parseInt(userId));
-
-      if (!existingUser) {
-        ctx.response.status = 404;
-        ctx.response.body = { error: "Utilisateur non trouvé" };
-        return;
-      }
-
-      const result = await UserService.updateUserRoleById(data);
-
-      if (!result.success) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "Aucune donnée mise à jour fournie" };
-        return;
-      }
-      ctx.response.status = 200;
-      ctx.response.body = result;
+      const updatedUserRole = await userService.updateUserRoleById(userData);
+      ctx.response.status = updatedUserRole.httpCode;
+      ctx.response.body = {
+        success: updatedUserRole.success,
+        message: updatedUserRole.message,
+        user: updatedUserRole.data,
+      };
     } catch (error) {
-      console.error("Error in updateUserRole method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+        user: null,
+      };
     }
   },
 
-  async updateUserInfo(ctx: CustomContext) {
+  async updateUserInfo(ctx: Context) {
     try {
-      const userId = ctx.params.id;
-
-      if (!userId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID de l'utilisateur manquant dans les paramètres de l'URL" };
+      if (ctx.request.method !== 'PUT') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
         return;
       }
 
-      const data: UserSchemaInfoUpdate = await ctx.request.body().value;
-      data.id = parseInt(userId);
+      const userData: UserSchemaInfoUpdate = await ctx.request.body().value;
 
-      const existingUser = await UserService.findById(parseInt(userId));
-
-      if (!existingUser) {
-        ctx.response.status = 404;
-        ctx.response.body = { error: "Utilisateur non trouvé" };
-        return;
-      }
-
-      const result = await UserService.updateUserInfoById(data);
-
-      if (!result.success) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "Aucune donnée mise à jour fournie" };
-        return;
-      }
-
-      ctx.response.status = 200;
-      ctx.response.body = result;
+      const updatedUserInfo = await userService.updateUserInfoById(userData);
+      ctx.response.status = updatedUserInfo.httpCode;
+      ctx.response.body = {
+        success: updatedUserInfo.success,
+        message: updatedUserInfo.message,
+        user: updatedUserInfo.data,
+      };
     } catch (error) {
-      console.error("Error in updateUserInfo method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+        user: null,
+      };
     }
   },
 
-  async updateUserAccount(ctx: CustomContext) {
+  async updateUserAccount(ctx: Context) {
     try {
-      const userId = ctx.params.id;
-
-      if (!userId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID de l'utilisateur manquant dans les paramètres de l'URL" };
+      if (ctx.request.method !== 'PUT') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
         return;
       }
 
-      const data: UserSchemaAccountUpdate = await ctx.request.body().value;
-      data.id = parseInt(userId);
+      const userData: UserSchemaAccountUpdate = await ctx.request.body().value;
 
-      const existingUser = await UserService.findById(parseInt(userId));
-
-      if (!existingUser) {
-        ctx.response.status = 404;
-        ctx.response.body = { error: "Utilisateur non trouvé" };
-        return;
-      }
-
-      const result = await UserService.updateUserAccountById(data);
-      if (!result.success) {
-        ctx.response.status = 404;
-        ctx.response.body = { error: "Utilisateur non trouvé" };
-        return;
-      }
-
-      ctx.response.status = 200;
-      ctx.response.body = result;
+      const updatedUserAccount = await userService.updateUserAccountById(userData);
+      ctx.response.status = updatedUserAccount.httpCode;
+      ctx.response.body = {
+        success: updatedUserAccount.success,
+        message: updatedUserAccount.message,
+        user: updatedUserAccount.data,
+      };
     } catch (error) {
-      console.error("Error in updateUserAccount method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+        user: null,
+      };
+    }
+  },
+
+  async deleteUser(ctx: CustomContext) {
+    try {
+      if (ctx.request.method !== 'DELETE') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
+        return;
+      }
+
+      const userId = ctx.params.id;
+      const deletionResult = await userService.deleteById(Number(userId));
+      ctx.response.status = deletionResult.httpCode;
+      ctx.response.body = {
+        success: deletionResult.success,
+        message: deletionResult.message,
+      };
+    } catch (error) {
+      ctx.response.status = 500;
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+      };
     }
   },
 };

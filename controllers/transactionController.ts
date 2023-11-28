@@ -1,6 +1,6 @@
 import { Context } from "https://deno.land/x/oak/mod.ts";
-import TransactionService from "../services/transactionService.ts";
-import { TransactionSchemaCreate } from "../schema/transactionsSchema.ts";
+import transactionService from "../services/transactionService.ts";
+import { TransactionSchemaCreate } from '../schema/transactionsSchema.ts';
 
 interface CustomContext extends Context {
   params: {
@@ -11,52 +11,88 @@ interface CustomContext extends Context {
 const TransactionController = {
   async getAllTransactions(ctx: Context) {
     try {
-      const transactions = await TransactionService.findAll();
-      ctx.response.status = 200;
-      ctx.response.body = transactions;
+      if (ctx.request.method !== 'GET') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
+        return;
+      }
+
+      const transactions = await transactionService.findAll();
+      ctx.response.status = transactions.httpCode;
+      ctx.response.body = {
+        success: transactions.success,
+        message: transactions.message,
+        transactions: transactions.data,
+      };
     } catch (error) {
-      console.error("Error in getAllTransactions method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+        transactions: [],
+      };
     }
   },
 
   async getTransactionById(ctx: CustomContext) {
     try {
+      if (ctx.request.method !== 'GET') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
+        return;
+      }
+
       const transactionId = ctx.params.id;
-
-      if (!transactionId) {
-        ctx.response.status = 400;
-        ctx.response.body = { error: "ID de la transaction manquant dans les paramètres de l'URL" };
-        return;
-      }
-
-      const result = await TransactionService.findById(parseInt(transactionId));
-      if (!result) {
-        ctx.response.status = 404;
-        ctx.response.body = { error: "Transaction non trouvée" };
-        return;
-      }
-
-      ctx.response.status = 200;
-      ctx.response.body = result;
+      const transaction = await transactionService.findById(Number(transactionId));
+      ctx.response.status = transaction.httpCode;
+      ctx.response.body = {
+        success: transaction.success,
+        message: transaction.message,
+        transaction: transaction.data,
+      };
     } catch (error) {
-      console.error("Error in getTransactionById method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+        transaction: null,
+      };
     }
   },
 
   async createTransaction(ctx: Context) {
     try {
-      const data: TransactionSchemaCreate = await ctx.request.body().value;
-      const result = await TransactionService.create(data);
-      ctx.response.status = 201;
-      ctx.response.body = result;
+      if (ctx.request.method !== 'POST') {
+        ctx.response.status = 405;
+        ctx.response.body = {
+          success: false,
+          message: "Méthode :" + ctx.request.method + " non autorisée pour cette route.",
+        };
+        return;
+      }
+      
+      const transactionData: TransactionSchemaCreate = await ctx.request.body().value;
+
+      const createdTransaction = await transactionService.create(transactionData);
+      ctx.response.status = createdTransaction.httpCode;
+      ctx.response.body = {
+        success: createdTransaction.success,
+        message: createdTransaction.message,
+        transaction: createdTransaction.info,
+      };
     } catch (error) {
-      console.error("Error in createTransaction method:", error);
       ctx.response.status = 500;
-      ctx.response.body = { error: "Internal server error" };
+      ctx.response.body = {
+        success: false,
+        message: error.message,
+        transaction: null,
+      };
     }
   },
 };
