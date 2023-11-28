@@ -1,4 +1,4 @@
-import { Client, ClientConfig, load } from "./deps.ts";
+import { Client, ClientConfig, load } from "../deps.ts";
 
 const envVars = await load();
 

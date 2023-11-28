@@ -1,4 +1,5 @@
-import dbClient from "../database.connectDB.ts";
+import dbClient from "../db/connectDb.ts";
+import roleQueries from "../db/queries/rolesQueries.ts";
 import { RoleSchema, RoleSchemaCreate, RoleSchemaUpdate } from "../schema/rolesSchema.ts";
 import {
   FindResponse,
@@ -12,7 +13,7 @@ import {
 const roleService = {
   findAll: async (): Promise<FindResponse<RoleSchema>> => {
     try {
-      const result = await dbClient.query(`SELECT * FROM roles`);
+      const result = await dbClient.query(roleQueries.findAllRoles);
       return {
         success: true,
         message: "Liste des roles récupèré avec succès",
@@ -26,7 +27,7 @@ const roleService = {
 
   findById: async (id: number): Promise<FindOneResponse<RoleSchema>> => {
     try {
-      const role = await dbClient.query("SELECT * FROM roles WHERE id = ?", [id]);
+      const role = await dbClient.query(roleQueries.findRoleById, [id]);
       if (role.length === 0) {
         return {
           success: false,
@@ -48,7 +49,8 @@ const roleService = {
 
   checkIfNameNotExists: async (name: string): Promise<FindOneResponse<RoleSchema>> => {
     try {
-      const existingRole = await dbClient.query(`SELECT * FROM roles WHERE name = ?`, [name]);      
+      const existingRole = await dbClient.query(roleQueries.findRoleByName, [name]); 
+      
       if (existingRole.length > 0) {
         return {
           success: false,
@@ -89,7 +91,7 @@ const roleService = {
         };
       }
       
-      await dbClient.query("DELETE FROM roles WHERE id = ?", [id]);
+      await dbClient.query(roleQueries.deleteRoleById, [id]);
       
       return {
         success: true,
@@ -114,7 +116,7 @@ const roleService = {
       }
       
       const roleCreate = await dbClient.execute(
-        "INSERT INTO roles (name, created_at) VALUES (?, NOW())",
+        roleQueries.createRole,
         [data.name]
       );
 
@@ -151,7 +153,7 @@ const roleService = {
         }
       }
       
-      const roleUpdate = await dbClient.query("UPDATE roles SET name = ?, updated_at = NOW() WHERE id = ?", [
+      const roleUpdate = await dbClient.query(roleQueries.updateRoleById, [
         data.name,
         data.id,
       ]);
@@ -169,7 +171,7 @@ const roleService = {
 
   isRoleInUse: async (id: number): Promise<boolean> => {
     try {
-      const result = await dbClient.query("SELECT COUNT(*) as count FROM users WHERE role_id = ?", [id]);
+      const result = await dbClient.query(roleQueries.checkRoleInUserUsage, [id]);
       return result[0].count > 0;
     } catch (error) {
       throw new Error(`Error while checking if role is in use: ${error.message}`);

@@ -1,4 +1,5 @@
-import dbClient from "../database.connectDB.ts";
+import dbClient from "../db/connectDb.ts";
+import sharePricesQueries from "../db/queries/sharePricesQueries.ts";
 import {
   SharePriceSchema,
   SharePriceSchemaCreate,
@@ -16,7 +17,7 @@ import {
 const sharePriceService = {
   findAll: async (): Promise<FindResponse<SharePriceSchema>> => {
     try {
-      const result = await dbClient.query(`SELECT * FROM share_prices`);
+      const result = await dbClient.query(sharePricesQueries.findAllSharePrices);
       return {
         success: true,
         message: "Liste des prix d'actions récupérée avec succès",
@@ -30,7 +31,7 @@ const sharePriceService = {
 
   findById: async (id: number): Promise<FindOneResponse<SharePriceSchema>> => {
     try {
-      const sharePrice = await dbClient.query("SELECT * FROM share_prices WHERE id = ?", [id]);
+      const sharePrice = await dbClient.query(sharePricesQueries.findSharePriceById, [id]);
       if (sharePrice.length === 0) {
         return {
           success: false,
@@ -52,7 +53,7 @@ const sharePriceService = {
 
   checkIfNameNotExists: async (name: string): Promise<FindOneResponse<SharePriceSchema>> => {
     try {
-      const existingSharePrice = await dbClient.query(`SELECT * FROM share_prices WHERE name = ?`, [name]);
+      const existingSharePrice = await dbClient.query(sharePricesQueries.findSharePriceByName, [name]);
       if (existingSharePrice.length > 0) {
         return {
           success: false,
@@ -92,7 +93,7 @@ const sharePriceService = {
         };
       }
       
-      await dbClient.query("DELETE FROM share_prices WHERE id = ?", [id]);
+      await dbClient.query(sharePricesQueries.deleteSharePriceById, [id]);
       return {
         success: true,
         message: "Le prix d'actions a été supprimé avec succès",
@@ -116,7 +117,7 @@ const sharePriceService = {
       }
 
       const sharePriceCreate = await dbClient.execute(
-        "INSERT INTO share_prices (name, created_at) VALUES (?, NOW())",
+        sharePricesQueries.createSharePrice,
         [data.name]
       );
       return {
@@ -153,7 +154,7 @@ const sharePriceService = {
       }
 
       const sharePriceUpdate = await dbClient.query(
-        "UPDATE share_prices SET name = ?, updated_at = NOW() WHERE id = ?",
+        sharePricesQueries.updateSharePriceById,
         [data.name, data.id]
       );
       return {
@@ -170,7 +171,7 @@ const sharePriceService = {
   // Ajout de la méthode pour vérifier si le prix d'actions est utilisé dans une transaction
   isSharePriceInUse: async (id: number): Promise<boolean> => {
     try {
-      const result = await dbClient.query("SELECT COUNT(*) as count FROM transactions WHERE share_price_id = ?", [id]);
+      const result = await dbClient.query(sharePricesQueries.checkSharePriceInTransactionUsage, [id]);
       return result[0].count > 0;
     } catch (error) {
       throw new Error(`Error while checking if share price is in use: ${error.message}`);

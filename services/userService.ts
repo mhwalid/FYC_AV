@@ -1,4 +1,5 @@
-import dbClient from "../database.connectDB.ts";
+import dbClient from "../db/connectDb.ts";
+import usersQueries from "../db/queries/usersQueries.ts";
 import {
   UserSchema,
   UserSchemaCreate,
@@ -19,7 +20,7 @@ import roleService from './roleService.ts'
 const userService = {
   findAll: async (): Promise<FindResponse<UserSchema>> => {
     try {
-      const result = await dbClient.query(`SELECT * FROM users`);
+      const result = await dbClient.query(usersQueries.findAllUsers);
       return {
         success: true,
         message: "Liste des utilisateurs récupérée avec succès",
@@ -33,7 +34,7 @@ const userService = {
 
   findById: async (id: number): Promise<FindOneResponse<UserSchema>> => {
     try {
-      const result = await dbClient.query("SELECT * FROM users WHERE id = ?", [id]);
+      const result = await dbClient.query(usersQueries.findUserById, [id]);
       if (result.length === 0) {
         return {
           success: false,
@@ -55,7 +56,7 @@ const userService = {
 
   findByEmail: async (email: string): Promise<FindOneResponse<UserSchema>> => {
     try {
-      const result = await dbClient.query("SELECT * FROM users WHERE email = ?", [email]);
+      const result = await dbClient.query(usersQueries.findUserByEmail, [email]);
       if (result.length === 0) {
         return {
           success: false,
@@ -95,7 +96,7 @@ const userService = {
         };
       }
 
-      await dbClient.query("DELETE FROM users WHERE id = ?", [id]);
+      await dbClient.query(usersQueries.deleteUserById, [id]);
       return {
         success: true,
         message: "L'utilisateur a été supprimé avec succès",
@@ -129,7 +130,7 @@ const userService = {
       }
 
       const result = await dbClient.query(
-        "INSERT INTO users (first_name, last_name, email, password, account, is_cdu, cdu_accepted_at, register_at, role_id) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?)",
+        usersQueries.createUser,
         [
           data.firstName,
           data.lastName,
@@ -165,7 +166,7 @@ const userService = {
       }
 
       const userUpdate = await dbClient.query(
-        "UPDATE users SET role_id = ?, updated_at = NOW() WHERE id = ?",
+        usersQueries.updateUserRoleById,
         [data.roleId, data.id]
       );
       return {
@@ -181,10 +182,20 @@ const userService = {
 
   updateUserInfoById: async (data: UserSchemaInfoUpdate): Promise<UpdateByIdResponse<UserSchema>> => {
     const updates: string[] = [];
+    const updateParams: any[] = [];
     
-    if (data.firstName) updates.push(`first_name = '${data.firstName}'`);
-    if (data.lastName) updates.push(`last_name = '${data.lastName}'`);
-    if (data.email) updates.push(`email = '${data.email}'`);
+    if (data.firstName) {
+      updates.push(`first_name = ?`);
+      updateParams.push(data.firstName);
+    }
+    if (data.lastName) {
+      updates.push(`last_name = ?`);
+      updateParams.push(data.lastName);
+    }
+    if (data.email) {
+      updates.push(`email = ?`);
+      updateParams.push(data.email);
+    }
 
     try {
       const resultExistUserId = await userService.findById(data.id);
@@ -210,10 +221,10 @@ const userService = {
       }
 
       const updateString = updates.join(", ");
-      const userUpdate = await dbClient.query(
-        `UPDATE users SET ${updateString}, updated_at = NOW() WHERE id = ?`,
-        [data.id]
-      );
+      updateParams.push(data.id);
+
+      const query = usersQueries.updateUserInfoById.replace(`{updateString}`, updateString);
+      const userUpdate = await dbClient.query(query, updateParams);
 
       return {
         success: true,
@@ -239,7 +250,7 @@ const userService = {
       }
 
       const userUpdate = await dbClient.query(
-        "UPDATE users SET account = ?, updated_at = NOW() WHERE id = ?",
+        usersQueries.updateUserAccountById,
         [data.account, data.id]
       );
 
@@ -257,7 +268,7 @@ const userService = {
   // Ajout de la méthode pour vérifier si l'utilisateur est associé à une transaction
   isUserInTransaction: async (id: number): Promise<boolean> => {
     try {
-      const result = await dbClient.query("SELECT COUNT(*) as count FROM transactions WHERE user_id = ?", [id]);
+      const result = await dbClient.query(usersQueries.checkUserInTransactionUsage, [id]);
       return result[0].count > 0;
     } catch (error) {
       throw new Error(`Error while checking if user is in transaction: ${error.message}`);

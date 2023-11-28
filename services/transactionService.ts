@@ -1,4 +1,5 @@
-import dbClient from "../database.connectDB.ts";
+import dbClient from "../db/connectDb.ts";
+import transactionsQueries from "../db/queries/transactionsQueries.ts";
 import { TransactionSchema, TransactionSchemaCreate } from "../schema/transactionsSchema.ts";
 import {
   FindResponse,
@@ -12,7 +13,7 @@ import sharePriceService from "./sharePriceService.ts"
 const transactionService = {
   findAll: async (): Promise<FindResponse<TransactionSchema>> => {
     try {
-      const result = await dbClient.query(`SELECT * FROM transactions`);
+      const result = await dbClient.query(transactionsQueries.findAllTransactions);
       return {
         success: true,
         message: "Liste des transactions récupérée avec succès",
@@ -26,7 +27,7 @@ const transactionService = {
 
   findById: async (id: number): Promise<FindOneResponse<TransactionSchema>> => {
     try {
-      const transaction = await dbClient.query("SELECT * FROM transactions WHERE id = ?", [id]);
+      const transaction = await dbClient.query(transactionsQueries.findTransactionById, [id]);
       if (transaction.length === 0) {
         return {
           success: false,
@@ -69,7 +70,7 @@ const transactionService = {
       }
 
       const result = await dbClient.query(
-        "INSERT INTO transactions (volume, type_transaction, transacted_at, user_id, share_price_id) VALUES (?, ?, NOW(), ?, ?)",
+        transactionsQueries.createTransaction,
         [data.volume, data.typeTransaction, data.userId, data.sharePriceId]
       );
       return {
