@@ -1,4 +1,4 @@
-import { Context, Router } from "https://deno.land/x/oak/mod.ts";
+import { Context , Router } from "../deps.ts";
 import TransactionController from "../controllers/transactionController.ts";
 import { validateJwtMiddleware } from "../middlewares/check-auth.ts";
 const router = new Router();

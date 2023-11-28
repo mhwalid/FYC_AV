@@ -1,4 +1,4 @@
-  import { Context } from "https://deno.land/x/oak/mod.ts";
+import { Context } from "../deps.ts";
   import roleService from "../services/roleService.ts";
   import { RoleSchemaCreate, RoleSchemaUpdate } from '../schema/rolesSchema.ts';
 

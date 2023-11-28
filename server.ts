@@ -1,6 +1,4 @@
-import { Application, Router } from "https://deno.land/x/oak/mod.ts";
-import { oakCors } from "https://deno.land/x/cors/mod.ts";
-import { config } from "https://deno.land/x/dotenv/mod.ts";
+import { Application, Router, oakCors, config } from "./deps.ts";
 
 import authRouter from "./routes/auth.ts";
 import roleRouter from "./routes/role.ts";

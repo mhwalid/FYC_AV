@@ -1,5 +1,4 @@
-import { Context, type RouterMiddleware } from "https://deno.land/x/oak@v12.6.1/mod.ts";
-import { verify } from "https://deno.land/x/djwt@v2.9.1/mod.ts";
+import { Context, verify, type RouterMiddleware } from "../deps.ts";;
 import { key } from "../utils/apiKeys.ts";
 // Middleware pour vérifier le token JWT
 export const validateJwtMiddleware: RouterMiddleware<string> = async(ctx: Context, next: any) =>{

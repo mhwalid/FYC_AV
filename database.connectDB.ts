@@ -1,5 +1,4 @@
-import { Client, ClientConfig } from "https://deno.land/x/mysql@v2.12.1/mod.ts";
-import { load } from "https://deno.land/std@0.202.0/dotenv/mod.ts";
+import { Client, ClientConfig, load } from "./deps.ts";
 
 const envVars = await load();
 

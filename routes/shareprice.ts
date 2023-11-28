@@ -1,4 +1,4 @@
-import { Router } from "https://deno.land/x/oak/mod.ts";
+import { Router } from "../deps.ts";
 import SharePriceController from "../controllers/sharePriceController.ts";
 
 const router = new Router();

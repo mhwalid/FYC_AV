@@ -1,5 +1,4 @@
-import * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
-import { create } from "https://deno.land/x/djwt@v2.9.1/mod.ts";
+import { bcrypt, create } from "../deps.ts";
 import { key } from "../utils/apiKeys.ts";
 import { UserSchemaLogin, UserSchemaCreate } from '../schema/usersSchema.ts'
 import userService from "./userService.ts";

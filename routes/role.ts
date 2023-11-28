@@ -1,4 +1,4 @@
-import { Router } from "https://deno.land/x/oak/mod.ts";
+import { Router } from "../deps.ts";
 import RoleController from "../controllers/roleController.ts";
 
 const router = new Router();
