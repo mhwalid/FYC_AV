@@ -181,22 +181,6 @@ const userService = {
   },
 
   updateUserInfoById: async (data: UserSchemaInfoUpdate): Promise<UpdateByIdResponse<UserSchema>> => {
-    const updates: string[] = [];
-    const updateParams: any[] = [];
-    
-    if (data.firstName) {
-      updates.push(`first_name = ?`);
-      updateParams.push(data.firstName);
-    }
-    if (data.lastName) {
-      updates.push(`last_name = ?`);
-      updateParams.push(data.lastName);
-    }
-    if (data.email) {
-      updates.push(`email = ?`);
-      updateParams.push(data.email);
-    }
-
     try {
       const resultExistUserId = await userService.findById(data.id);
       if (!resultExistUserId.success) {
@@ -220,8 +204,8 @@ const userService = {
         }
       }
 
-      const updateString = updates.join(", ");
-      updateParams.push(data.id);
+      const updateParams = buildUpdateParams(data);
+      const updateString = buildUpdateString(data);
 
       const query = usersQueries.updateUserInfoById.replace(`{updateString}`, updateString);
       const userUpdate = await dbClient.query(query, updateParams);
@@ -274,6 +258,36 @@ const userService = {
       throw new Error(`Error while checking if user is in transaction: ${error.message}`);
     }
   },
+};
+
+const buildUpdateParams = (data: UserSchemaInfoUpdate): any[] => {
+  const updateParams: any[] = [];
+  if (data.firstName) {
+    updateParams.push(data.firstName);
+  }
+  if (data.lastName) {
+    updateParams.push(data.lastName);
+  }
+  if (data.email) {
+    updateParams.push(data.email);
+  }
+
+  updateParams.push(data.id)
+  return updateParams;
+};
+
+const buildUpdateString = (data: UserSchemaInfoUpdate): string => {
+  const updates: string[] = [];
+  if (data.firstName) {
+    updates.push(`first_name = ?`);
+  }
+  if (data.lastName) {
+    updates.push(`last_name = ?`);
+  }
+  if (data.email) {
+    updates.push(`email = ?`);
+  }
+  return updates.join(", ");
 };
 
 

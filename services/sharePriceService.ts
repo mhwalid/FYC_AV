@@ -133,16 +133,6 @@ const sharePriceService = {
 
   updateById: async (data: SharePriceSchemaUpdate): Promise<UpdateByIdResponse<SharePriceSchema>> => {
     try {
-      const resultExistSharePriceName = await sharePriceService.checkIfNameNotExists(data.name)
-      if (!resultExistSharePriceName.success) {
-        return {
-          success: false,
-          message: resultExistSharePriceName.message,
-          httpCode: resultExistSharePriceName.httpCode,
-          data: resultExistSharePriceName.data as SharePriceSchema
-        }
-      }
-
       const resultExistSharePriceId = await sharePriceService.findById(data.id)
       if (!resultExistSharePriceId.success) {
         return {
@@ -153,10 +143,24 @@ const sharePriceService = {
         }
       }
 
-      const sharePriceUpdate = await dbClient.query(
-        sharePricesQueries.updateSharePriceById,
-        [data.name, data.id]
-      );
+      if (data.name != undefined) {
+        const resultExistSharePriceName = await sharePriceService.checkIfNameNotExists(data.name)
+        if (!resultExistSharePriceName.success) {
+          return {
+            success: false,
+            message: resultExistSharePriceName.message,
+            httpCode: resultExistSharePriceName.httpCode,
+            data: resultExistSharePriceName.data as SharePriceSchema
+          }
+        }
+      }
+
+      const updateParams = buildUpdateParams(data);
+      const updateString = buildUpdateString(data);
+
+      const query = sharePricesQueries.updateSharePriceById.replace(`{updateString}`, updateString);
+      const sharePriceUpdate = await dbClient.query(query, updateParams);
+
       return {
         success: true,
         message: "Prix d'actions mis à jour avec succès",
@@ -177,6 +181,36 @@ const sharePriceService = {
       throw new Error(`Error while checking if share price is in use: ${error.message}`);
     }
   },
+};
+
+const buildUpdateParams = (data: SharePriceSchemaUpdate): any[] => {
+  const updateParams: any[] = [];
+  if (data.name) {
+    updateParams.push(data.name);
+  }
+  if (data.value) {
+    updateParams.push(data.value);
+  }
+  if (data.volume) {
+    updateParams.push(data.volume);
+  }
+  
+  updateParams.push(data.id)
+  return updateParams;
+};
+
+const buildUpdateString = (data: SharePriceSchemaUpdate): string => {
+  const updates: string[] = [];
+  if (data.name) {
+    updates.push(`name = ?`);
+  }
+  if (data.value) {
+    updates.push(`value = ?`);
+  }
+  if (data.volume) {
+    updates.push(`volume = ?`);
+  }
+  return updates.join(", ");
 };
 
 export default sharePriceService;
