@@ -4,20 +4,22 @@ import {
   SharePriceSchema,
   SharePriceSchemaCreate,
   SharePriceSchemaUpdate,
+  UpdateByIdSharePriceResponse
 } from "../schema/sharePricesSchema.ts";
 import {
   FindResponse,
   FindOneResponse,
   DeleteByIdResponse,
   CreateResponse,
-  UpdateByIdResponse,
   InfoResponse
 } from "../schema/utils/responsesSchema.ts";
+import { SharePriceHistorySchemaCreate } from "../schema/sharePriceHistorySchema.ts";
+import sharePriceHistoryService from "./sharePriceHistoryService.ts";
 
 const sharePriceService = {
   findAll: async (): Promise<FindResponse<SharePriceSchema>> => {
     try {
-      const result = await dbClient.query(sharePricesQueries.findAllSharePrices);
+      const result = await dbClient.query(sharePricesQueries.findAll);
       return {
         success: true,
         message: "Liste des prix d'actions récupérée avec succès",
@@ -31,7 +33,7 @@ const sharePriceService = {
 
   findById: async (id: number): Promise<FindOneResponse<SharePriceSchema>> => {
     try {
-      const sharePrice = await dbClient.query(sharePricesQueries.findSharePriceById, [id]);
+      const sharePrice = await dbClient.query(sharePricesQueries.findById, [id]);
       if (sharePrice.length === 0) {
         return {
           success: false,
@@ -53,7 +55,7 @@ const sharePriceService = {
 
   checkIfNameNotExists: async (name: string): Promise<FindOneResponse<SharePriceSchema>> => {
     try {
-      const existingSharePrice = await dbClient.query(sharePricesQueries.findSharePriceByName, [name]);
+      const existingSharePrice = await dbClient.query(sharePricesQueries.findByName, [name]);
       if (existingSharePrice.length > 0) {
         return {
           success: false,
@@ -92,8 +94,8 @@ const sharePriceService = {
           httpCode: 400,
         };
       }
-      
-      await dbClient.query(sharePricesQueries.deleteSharePriceById, [id]);
+
+      await dbClient.query(sharePricesQueries.delete, [id]);
       return {
         success: true,
         message: "Le prix d'actions a été supprimé avec succès",
@@ -117,9 +119,20 @@ const sharePriceService = {
       }
 
       const sharePriceCreate = await dbClient.execute(
-        sharePricesQueries.createSharePrice,
-        [data.name]
+        sharePricesQueries.create,
+        [data.name, data.value, data.volume]
       );
+
+      // On historise l'action
+      if (sharePriceCreate.lastInsertId !== undefined) {
+        const sharePriceHistory: SharePriceHistorySchemaCreate = {
+          oldValue: data.value,
+          oldVolume: data.volume,
+          sharePriceId: sharePriceCreate.lastInsertId
+        }
+        await sharePriceHistoryService.create(sharePriceHistory);
+      }
+
       return {
         success: true,
         message: "Prix d'actions créé avec succès",
@@ -131,7 +144,7 @@ const sharePriceService = {
     }
   },
 
-  updateById: async (data: SharePriceSchemaUpdate): Promise<UpdateByIdResponse<SharePriceSchema>> => {
+  updateById: async (data: SharePriceSchemaUpdate): Promise<UpdateByIdSharePriceResponse> => {
     try {
       const resultExistSharePriceId = await sharePriceService.findById(data.id)
       if (!resultExistSharePriceId.success) {
@@ -139,7 +152,8 @@ const sharePriceService = {
           success: false,
           message: resultExistSharePriceId.message,
           httpCode: resultExistSharePriceId.httpCode,
-          data: resultExistSharePriceId.data as null
+          data: resultExistSharePriceId.data as null,
+          sharePriceHistoryId: null
         }
       }
 
@@ -150,7 +164,8 @@ const sharePriceService = {
             success: false,
             message: resultExistSharePriceName.message,
             httpCode: resultExistSharePriceName.httpCode,
-            data: resultExistSharePriceName.data as SharePriceSchema
+            data: resultExistSharePriceName.data as SharePriceSchema,
+            sharePriceHistoryId: null
           }
         }
       }
@@ -158,14 +173,45 @@ const sharePriceService = {
       const updateParams = buildUpdateParams(data);
       const updateString = buildUpdateString(data);
 
-      const query = sharePricesQueries.updateSharePriceById.replace(`{updateString}`, updateString);
+      const query = sharePricesQueries.update.replace(`{updateString}`, updateString);
       const sharePriceUpdate = await dbClient.query(query, updateParams);
+
+
+      // On récupére les nouvelles valeurs de l'action
+      const sharePrice = await sharePriceService.findById(sharePriceUpdate.lastInsertId)
+      if (!sharePrice.success || sharePrice.data === null) {
+        return {
+          success: false,
+          message: resultExistSharePriceId.message,
+          httpCode: resultExistSharePriceId.httpCode,
+          data: resultExistSharePriceId.data as null,
+          sharePriceHistoryId: null
+        }
+      }
+
+      // On historise les nouvelles valeurs de l'action
+      const sharePriceHistory: SharePriceHistorySchemaCreate = {
+        oldValue: sharePrice.data.value,
+        oldVolume: sharePrice.data.volume,
+        sharePriceId: sharePriceUpdate.lastInsertId
+      }
+      const sharePriceHistoryResponse = await sharePriceHistoryService.create(sharePriceHistory);
+      if (sharePriceHistoryResponse.info === null) {
+        return {
+          success: false,
+          message: "Historisation de l'action impossible",
+          httpCode: 500,
+          data: null,
+          sharePriceHistoryId: null
+        }
+      }
 
       return {
         success: true,
         message: "Prix d'actions mis à jour avec succès",
         httpCode: 200,
         data: sharePriceUpdate as SharePriceSchema,
+        sharePriceHistoryId: sharePriceHistoryResponse.info.lastInsertId
       };
     } catch (error) {
       throw new Error(`Error while updating share price by Id: ${error.message}`);
@@ -194,7 +240,7 @@ const buildUpdateParams = (data: SharePriceSchemaUpdate): any[] => {
   if (data.volume) {
     updateParams.push(data.volume);
   }
-  
+
   updateParams.push(data.id)
   return updateParams;
 };

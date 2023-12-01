@@ -3,9 +3,10 @@ import usersQueries from "../db/queries/usersQueries.ts";
 import {
   UserSchema,
   UserSchemaCreate,
-  UserSchemaAccountUpdate,
+  UserSchemaWalletUpdate,
   UserSchemaInfoUpdate,
   UserSchemaRoleUpdate,
+  UserSchemaActiveUpdate
 } from "../schema/usersSchema.ts";
 import {
   FindResponse,
@@ -16,11 +17,13 @@ import {
   InfoResponse
 } from "../schema/utils/responsesSchema.ts";
 import roleService from './roleService.ts'
+import walletHistoryService from "./walletHistoryService.ts";
+import { WalletHistorySchemaCreate } from "../schema/walletHistorySchema.ts";
 
 const userService = {
   findAll: async (): Promise<FindResponse<UserSchema>> => {
     try {
-      const result = await dbClient.query(usersQueries.findAllUsers);
+      const result = await dbClient.query(usersQueries.findAll);
       return {
         success: true,
         message: "Liste des utilisateurs récupérée avec succès",
@@ -34,7 +37,7 @@ const userService = {
 
   findById: async (id: number): Promise<FindOneResponse<UserSchema>> => {
     try {
-      const result = await dbClient.query(usersQueries.findUserById, [id]);
+      const result = await dbClient.query(usersQueries.findById, [id]);
       if (result.length === 0) {
         return {
           success: false,
@@ -56,7 +59,7 @@ const userService = {
 
   findByEmail: async (email: string): Promise<FindOneResponse<UserSchema>> => {
     try {
-      const result = await dbClient.query(usersQueries.findUserByEmail, [email]);
+      const result = await dbClient.query(usersQueries.findByEmail, [email]);
       if (result.length === 0) {
         return {
           success: false,
@@ -96,7 +99,7 @@ const userService = {
         };
       }
 
-      await dbClient.query(usersQueries.deleteUserById, [id]);
+      await dbClient.query(usersQueries.delete, [id]);
       return {
         success: true,
         message: "L'utilisateur a été supprimé avec succès",
@@ -130,13 +133,13 @@ const userService = {
       }
 
       const result = await dbClient.query(
-        usersQueries.createUser,
+        usersQueries.create,
         [
           data.firstName,
           data.lastName,
           data.email,
           data.password,
-          data.account,
+          data.wallet,
           data.isCdu,
           data.cduAcceptedAt,
           data.roleId,
@@ -166,7 +169,7 @@ const userService = {
       }
 
       const userUpdate = await dbClient.query(
-        usersQueries.updateUserRoleById,
+        usersQueries.updateRole,
         [data.roleId, data.id]
       );
       return {
@@ -207,7 +210,7 @@ const userService = {
       const updateParams = buildUpdateParams(data);
       const updateString = buildUpdateString(data);
 
-      const query = usersQueries.updateUserInfoById.replace(`{updateString}`, updateString);
+      const query = usersQueries.updateInfo.replace(`{updateString}`, updateString);
       const userUpdate = await dbClient.query(query, updateParams);
 
       return {
@@ -221,7 +224,68 @@ const userService = {
     }
   },
 
-  updateUserAccountById: async (data: UserSchemaAccountUpdate): Promise<UpdateByIdResponse<UserSchema>> => {
+  updateUserWalletById: async (data: UserSchemaWalletUpdate): Promise<UpdateByIdResponse<UserSchema>> => {
+    try {
+      const resultExistUserId = await userService.findById(data.id);
+      if (!resultExistUserId.success || resultExistUserId.data === null) {
+        return {
+          success: false,
+          message: resultExistUserId.message,
+          httpCode: resultExistUserId.httpCode,
+          data: resultExistUserId.data as null
+        };
+      }
+
+      let responseMessage = "";
+      let wallet = resultExistUserId.data?.wallet;
+      let typeOperation = "";
+
+      if (data.value >= 0) {
+        wallet += data.value;
+        typeOperation = 'GAIN'
+        responseMessage = `Argent ajouté : ${data.value}€. Total : ${wallet}€`;
+      } else {
+        typeOperation = 'PERTE'
+        // Valeur absolue pour éviter un négatif
+        const value = Math.abs(data.value)
+        if (wallet >= value) {
+          wallet -= value;
+          responseMessage = `Argent retiré : ${value}€. Total : ${wallet}€`;
+        } else {
+          return {
+            success: false,
+            message: "Pas assez d'argent dans votre portefeuille",
+            httpCode: 400,
+            data: null,
+          };
+        }
+      }
+
+      const userUpdate = await dbClient.query(
+        usersQueries.updateWallet,
+        [wallet, data.id]
+      );
+
+      // On historise le nouveau portefeuille
+      const sharePriceHistory: WalletHistorySchemaCreate = {
+        value: wallet,
+        operationType: typeOperation,
+        userId: data.id
+      }
+      await walletHistoryService.create(sharePriceHistory);
+
+      return {
+        success: true,
+        message: "Portefeuille de l'utilisateur mis à jour : " + responseMessage,
+        httpCode: 200,
+        data: userUpdate as InfoResponse,
+      };
+    } catch (error) {
+      throw new Error(`Error while updating user wallet by Id: ${error.message}`);
+    }
+  },
+
+  updateUserIsActive: async (data: UserSchemaActiveUpdate): Promise<UpdateByIdResponse<UserSchema>> => {
     try {
       const resultExistUserId = await userService.findById(data.id);
       if (!resultExistUserId.success) {
@@ -234,8 +298,8 @@ const userService = {
       }
 
       const userUpdate = await dbClient.query(
-        usersQueries.updateUserAccountById,
-        [data.account, data.id]
+        usersQueries.updateIsActive,
+        [data.isActive, data.id]
       );
 
       return {
@@ -245,7 +309,7 @@ const userService = {
         data: userUpdate as InfoResponse,
       };
     } catch (error) {
-      throw new Error(`Error while updating user account by Id: ${error.message}`);
+      throw new Error(`Error while updating user active by Id: ${error.message}`);
     }
   },
 

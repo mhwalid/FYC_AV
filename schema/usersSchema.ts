@@ -1,5 +1,7 @@
-import {RoleSchema} from "./rolesSchema.ts"
-import {TransactionSchema} from "./transactionsSchema.ts";
+import { RoleSchema } from "./rolesSchema.ts"
+import { TransactionSchema } from "./transactionsSchema.ts";
+import { WalletHistorySchema } from "./walletHistorySchema.ts";
+import { UserLoginSchema } from "./userLoginsSchema.ts";
 
 export interface UserSchema {
   id: number;
@@ -7,13 +9,17 @@ export interface UserSchema {
   lastName: string;
   email: string;
   password: string;
-  account: number;
+  wallet: number;
   isCdu: boolean;
   cduAcceptedAt: Date;
   registerAt: Date;
   updatedAt: Date;
+  unsubscribeAt: Date;
+  isActive: boolean;
   role: RoleSchema;
-  transaction: TransactionSchema[];
+  transactions: TransactionSchema[];
+  walletHistories: WalletHistorySchema[];
+  userLogins: UserLoginSchema[];
 }
 
 export interface UserSchemaLogin {
@@ -26,8 +32,9 @@ export interface UserSchemaCreate {
   lastName: string;
   email: string;
   password: string;
-  account: number;
+  wallet: number;
   isCdu: boolean;
+  isActive: boolean;
   cduAcceptedAt: Date;
   roleId: number;
 }
@@ -44,7 +51,12 @@ export interface UserSchemaInfoUpdate {
   email?: string;
 }
 
-export interface UserSchemaAccountUpdate {
+export interface UserSchemaWalletUpdate {
   id: number;
-  account: number;
+  value: number;
+}
+
+export interface UserSchemaActiveUpdate {
+  id: number;
+  isActive: number;
 }

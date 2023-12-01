@@ -2,7 +2,7 @@ import { Context } from "../deps.ts";;
 import userService from "../services/userService.ts";
 import {
   UserSchemaCreate,
-  UserSchemaAccountUpdate,
+  UserSchemaWalletUpdate,
   UserSchemaInfoUpdate,
   UserSchemaRoleUpdate,
 } from '../schema/usersSchema.ts';
@@ -161,7 +161,7 @@ const UserController = {
     }
   },
 
-  async updateUserAccount(ctx: Context) {
+  async updateUserWallet(ctx: Context) {
     try {
       if (ctx.request.method !== 'PUT') {
         ctx.response.status = 405;
@@ -172,14 +172,14 @@ const UserController = {
         return;
       }
 
-      const userData: UserSchemaAccountUpdate = await ctx.request.body().value;
+      const userData: UserSchemaWalletUpdate = await ctx.request.body().value;
 
-      const updatedUserAccount = await userService.updateUserAccountById(userData);
-      ctx.response.status = updatedUserAccount.httpCode;
+      const updatedUserWallet = await userService.updateUserWalletById(userData);
+      ctx.response.status = updatedUserWallet.httpCode;
       ctx.response.body = {
-        success: updatedUserAccount.success,
-        message: updatedUserAccount.message,
-        user: updatedUserAccount.data,
+        success: updatedUserWallet.success,
+        message: updatedUserWallet.message,
+        user: updatedUserWallet.data,
       };
     } catch (error) {
       ctx.response.status = 500;

@@ -2,7 +2,7 @@ export interface FindResponse<T> {
   success: boolean;
   message: string;
   httpCode: number;
-  data: T[];
+  data: T[] | null;
 }
 
 export interface FindOneResponse<T> {
@@ -22,14 +22,14 @@ export interface CreateResponse<T> {
   success: boolean;
   message: string;
   httpCode: number;
-  info: CreateInfoResponse | T | null;
+  info: InfoResponse | T | null;
 }
 
 export interface UpdateByIdResponse<T> {
   success: boolean;
   message: string;
   httpCode: number;
-  data: CreateInfoResponse | T | null;
+  data: InfoResponse | T | null;
 }
 
 export interface ErrorResponse {
@@ -38,7 +38,7 @@ export interface ErrorResponse {
   httpCode: number;
 }
 
-export interface CreateInfoResponse {
+export interface InfoResponse {
   lastInsertId: number,
   affectedRows: number
 }

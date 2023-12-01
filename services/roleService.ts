@@ -13,7 +13,7 @@ import {
 const roleService = {
   findAll: async (): Promise<FindResponse<RoleSchema>> => {
     try {
-      const result = await dbClient.query(roleQueries.findAllRoles);
+      const result = await dbClient.query(roleQueries.findAll);
       return {
         success: true,
         message: "Liste des roles récupèré avec succès",
@@ -27,7 +27,7 @@ const roleService = {
 
   findById: async (id: number): Promise<FindOneResponse<RoleSchema>> => {
     try {
-      const role = await dbClient.query(roleQueries.findRoleById, [id]);
+      const role = await dbClient.query(roleQueries.findById, [id]);
       if (role.length === 0) {
         return {
           success: false,
@@ -49,7 +49,7 @@ const roleService = {
 
   checkIfNameNotExists: async (name: string): Promise<FindOneResponse<RoleSchema>> => {
     try {
-      const existingRole = await dbClient.query(roleQueries.findRoleByName, [name]); 
+      const existingRole = await dbClient.query(roleQueries.findByName, [name]); 
       
       if (existingRole.length > 0) {
         return {
@@ -91,7 +91,7 @@ const roleService = {
         };
       }
       
-      await dbClient.query(roleQueries.deleteRoleById, [id]);
+      await dbClient.query(roleQueries.delete, [id]);
       
       return {
         success: true,
@@ -116,7 +116,7 @@ const roleService = {
       }
       
       const roleCreate = await dbClient.execute(
-        roleQueries.createRole,
+        roleQueries.create,
         [data.name]
       );
 
@@ -153,7 +153,7 @@ const roleService = {
         }
       }
       
-      const roleUpdate = await dbClient.query(roleQueries.updateRoleById, [
+      const roleUpdate = await dbClient.query(roleQueries.update, [
         data.name,
         data.id,
       ]);

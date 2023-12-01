@@ -1,10 +1,10 @@
 const roleQueries = {
-    findAllRoles: `SELECT * FROM roles`,
-    findRoleById: `SELECT * FROM roles WHERE id = ?`,
-    findRoleByName: `SELECT * FROM roles WHERE name = ?`,
-    deleteRoleById: `DELETE FROM roles WHERE id = ?`,
-    createRole: `INSERT INTO roles (name, created_at) VALUES (?, NOW())`,
-    updateRoleById: `UPDATE roles SET name = ?, updated_at = NOW() WHERE id = ?`,
+    findAll: `SELECT * FROM roles`,
+    findById: `SELECT * FROM roles WHERE id = ?`,
+    findByName: `SELECT * FROM roles WHERE name = ?`,
+    create: `INSERT INTO roles (name, created_at) VALUES (?, NOW())`,
+    update: `UPDATE roles SET name = ?, updated_at = NOW() WHERE id = ?`,
+    delete: `DELETE FROM roles WHERE id = ?`,
     checkRoleInUserUsage: `SELECT COUNT(*) as count FROM users WHERE role_id = ?`
   };
   

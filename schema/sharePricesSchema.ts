@@ -1,10 +1,10 @@
-import {TransactionSchema} from "./transactionsSchema.ts";
+import { TransactionSchema } from "./transactionsSchema.ts";
 
 export interface SharePriceSchema {
   id: number;
-  name: number;
+  name: string;
   value: number;
-  volume: string;
+  volume: number;
   createdAt: Date;
   updatedAt: Date;
   transaction: TransactionSchema[];
@@ -21,4 +21,12 @@ export interface SharePriceSchemaUpdate {
   name: string;
   value: number;
   volume: number;
+}
+
+export interface UpdateByIdSharePriceResponse {
+  success: boolean;
+  message: string;
+  httpCode: number;
+  data: SharePriceSchema | null;
+  sharePriceHistoryId: number | null;
 }
