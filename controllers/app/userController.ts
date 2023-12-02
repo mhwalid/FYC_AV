@@ -38,13 +38,15 @@ const UserController = {
     },
 
 
-    async updateUserInfo(ctx: Context) {
+    async updateUserInfo(ctx: CustomContext) {
         try {
             if (!checkHttpMethod(ctx, ['PUT'])) {
                 return;
             }
 
+            const userId = ctx.params.userId;
             const userData: UserSchemaInfoUpdate = await ctx.request.body().value;
+            userData.id = Number(userId)
 
             const updatedUserInfo = await userService.updateUserInfoById(userData);
             ctx.response.status = updatedUserInfo.httpCode;
@@ -63,13 +65,15 @@ const UserController = {
         }
     },
 
-    async updateUserWallet(ctx: Context) {
+    async updateUserWallet(ctx: CustomContext) {
         try {
             if (!checkHttpMethod(ctx, ['PUT'])) {
                 return;
             }
 
+            const userId = ctx.params.userId;
             const userData: UserSchemaWalletUpdate = await ctx.request.body().value;
+            userData.id = Number(userId)
 
             const updatedUserWallet = await userService.updateUserWalletById(userData);
             ctx.response.status = updatedUserWallet.httpCode;
