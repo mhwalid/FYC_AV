@@ -1,6 +1,6 @@
 import { Context } from "../../deps.ts";
-import sharePriceService from "../../services/sharePriceService.ts";
-import { SharePriceSchemaCreate } from '../../schema/sharePricesSchema.ts';
+import sharePriceService from "../../services/sharePrice/sharePriceService.ts";
+import { SharePriceSchemaCreate } from '../../schema/sharePrice/sharePricesSchema.ts';
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
 
 const SharePriceController = {

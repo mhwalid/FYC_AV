@@ -1,10 +1,11 @@
 import { Context } from "../../deps.ts";;
-import userService from "../../services/userService.ts";
+import userService from "../../services/user/userService.ts";
 import {
     UserSchemaCreate
-} from '../../schema/usersSchema.ts';
-import { UserSchemaActiveUpdate } from "../../schema/usersSchema.ts";
+} from '../../schema/user/usersSchema.ts';
+import { UserSchemaActiveUpdate } from "../../schema/user/usersSchema.ts";
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
+import { UserSchemaFindAllFilters } from "../../schema/user/usersSchema.ts";
 
 interface CustomContext extends Context {
     params: {
@@ -19,7 +20,14 @@ const UserController = {
                 return;
             }
 
-            const users = await userService.findAll();
+            const searchParams = ctx.request.url.searchParams;
+
+            const filters: UserSchemaFindAllFilters = {
+                isActive: Boolean(searchParams.get('isActive')) || undefined,
+                roleId: Number(searchParams.get('roleId')) || undefined,
+            };
+
+            const users = await userService.findAll(filters);
             ctx.response.status = users.httpCode;
             ctx.response.body = {
                 success: users.success,
@@ -42,7 +50,7 @@ const UserController = {
                 return;
             }
 
-            const userId = ctx.params.id;
+            const userId = ctx.params.userId;
             const user = await userService.findById(Number(userId));
             ctx.response.status = user.httpCode;
             ctx.response.body = {
@@ -85,7 +93,7 @@ const UserController = {
         }
     },
 
-    async unsubscribeUser(ctx: Context) {
+    async updateActiveUser(ctx: Context) {
         try {
             if (!checkHttpMethod(ctx, ['POST'])) {
                 return;

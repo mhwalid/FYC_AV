@@ -1,5 +1,5 @@
 import { Context } from "../../deps.ts";
-import walletHistoryService from "../../services/walletHistoryService.ts";
+import walletHistoryService from "../../services/user/walletHistoryService.ts";
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
 
 interface CustomContext extends Context {

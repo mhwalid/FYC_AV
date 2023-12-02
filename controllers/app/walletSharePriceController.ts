@@ -1,5 +1,5 @@
 import { Context } from "../../deps.ts";
-import walletSharePriceService from "../../services/walletSharePriceService.ts";
+import walletSharePriceService from "../../services/sharePrice/walletSharePriceService.ts";
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
 
 interface CustomContext extends Context {
@@ -16,9 +16,8 @@ const WalletSharePriceController = {
             }
 
             const userId = ctx.params.userId;
-            const userWalletSharePrice = await walletSharePriceService.findByUserId(
-                Number(userId)
-            );
+
+            const userWalletSharePrice = await walletSharePriceService.findByUserId(Number(userId));
             ctx.response.status = userWalletSharePrice.httpCode;
             ctx.response.body = {
                 success: userWalletSharePrice.success,
@@ -40,8 +39,10 @@ const WalletSharePriceController = {
             if (!checkHttpMethod(ctx, ['GET'])) {
                 return;
             }
+
             const userId = ctx.params.userId;
             const sharePriceId = ctx.params.sharePriceId;
+
             const userSharePrice = await walletSharePriceService.findUserSharePrice(
                 Number(userId),
                 Number(sharePriceId)

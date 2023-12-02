@@ -1,8 +1,8 @@
 import { Context } from "../../deps.ts";
-import roleService from "../../services/roleService.ts";
-import { RoleSchemaCreate, RoleSchemaUpdate } from '../../schema/rolesSchema.ts';
-import { UserSchemaRoleUpdate } from "../../schema/usersSchema.ts";
-import userService from "../../services/userService.ts";
+import roleService from "../../services/user/roleService.ts";
+import { RoleSchemaCreate, RoleSchemaUpdate } from '../../schema/user/rolesSchema.ts';
+import { UserSchemaRoleUpdate } from "../../schema/user/usersSchema.ts";
+import userService from "../../services/user/userService.ts";
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
 
 interface CustomContext extends Context {
@@ -66,7 +66,7 @@ const RoleController = {
                 return;
             }
 
-            const roleId = ctx.params.id;
+            const roleId = ctx.params.roleId;
             const roleData: RoleSchemaUpdate = await ctx.request.body().value;
             roleData.id = Number(roleId)
 
@@ -87,13 +87,16 @@ const RoleController = {
         }
     },
 
-    async updateUserRole(ctx: Context) {
+    async updateUserRole(ctx: CustomContext) {
         try {
             if (!checkHttpMethod(ctx, ['PUT'])) {
                 return;
             }
 
+            const roleId = ctx.params.roleId;
+            // Récupération des valeurs du Body
             const userData: UserSchemaRoleUpdate = await ctx.request.body().value;
+            userData.roleId = Number(roleId)
 
             const updatedUserRole = await userService.updateUserRoleById(userData);
             ctx.response.status = updatedUserRole.httpCode;
@@ -118,7 +121,7 @@ const RoleController = {
                 return;
             }
 
-            const roleId = ctx.params.id;
+            const roleId = ctx.params.roleId;
             const deletionResult = await roleService.deleteById(Number(roleId));
             ctx.response.status = deletionResult.httpCode;
             ctx.response.body = {

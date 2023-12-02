@@ -1,5 +1,5 @@
 import { Context } from "../../deps.ts";
-import sharePriceHistoryService from "../../services/sharePriceHistoryService.ts";
+import sharePriceHistoryService from "../../services/sharePrice/sharePriceHistoryService.ts";
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
 
 interface CustomContext extends Context {
@@ -16,6 +16,8 @@ const SharePriceHistoryController = {
       }
 
       const sharePriceHistory = await sharePriceHistoryService.findAll();
+      console.log(sharePriceHistory);
+
       ctx.response.status = sharePriceHistory.httpCode;
       ctx.response.body = {
         success: sharePriceHistory.success,
@@ -32,14 +34,14 @@ const SharePriceHistoryController = {
     }
   },
 
-  async getSharePriceHistoryById(ctx: CustomContext) {
+  async getSharePriceHistoryBySharePriceId(ctx: CustomContext) {
     try {
       if (!checkHttpMethod(ctx, ['GET'])) {
         return;
       }
 
-      const sharePriceHistoryId = ctx.params.id;
-      const sharePriceHistory = await sharePriceHistoryService.findById(Number(sharePriceHistoryId));
+      const sharePriceId = ctx.params.sharePriceId;
+      const sharePriceHistory = await sharePriceHistoryService.findBySharePriceId(Number(sharePriceId));
       ctx.response.status = sharePriceHistory.httpCode;
       ctx.response.body = {
         success: sharePriceHistory.success,

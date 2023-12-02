@@ -1,5 +1,5 @@
 import { Context } from "../../deps.ts";;
-import transactionService from "../../services/transactionService.ts";
+import transactionService from "../../services/transaction/transactionService.ts";
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
 
 

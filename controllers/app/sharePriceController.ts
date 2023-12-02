@@ -1,5 +1,5 @@
 import { Context } from "../../deps.ts";
-import sharePriceService from "../../services/sharePriceService.ts";
+import sharePriceService from "../../services/sharePrice/sharePriceService.ts";
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
 
 interface CustomContext extends Context {
@@ -38,7 +38,7 @@ const SharePriceController = {
         return;
       }
 
-      const sharePriceId = ctx.params.id;
+      const sharePriceId = ctx.params.sharePriceId;
       const sharePrice = await sharePriceService.findById(Number(sharePriceId));
       ctx.response.status = sharePrice.httpCode;
       ctx.response.body = {

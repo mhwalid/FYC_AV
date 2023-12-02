@@ -1,17 +1,17 @@
 import { Context } from "../../deps.ts";
-import transactionService from "../../services/transactionService.ts";
-import { TransactionSchemaCreate, RequestTransactionSchemaCreate } from '../../schema/transactionsSchema.ts';
-import sharePriceService from "../../services/sharePriceService.ts";
-import userService from "../../services/userService.ts";
-import { SharePriceSchemaUpdate } from "../../schema/sharePricesSchema.ts";
-import { UserSchemaWalletUpdate } from "../../schema/usersSchema.ts";
-import { WalletSharePriceSchemaCreate, WalletSharePriceSchemaUpdate } from "../../schema/walletSharePricesSchema.ts";
-import walletSharePriceService from "../../services/walletSharePriceService.ts";
-import { SharePriceSchema } from "../../schema/sharePricesSchema.ts";
+import transactionService from "../../services/transaction/transactionService.ts";
+import { TransactionSchemaCreate, RequestTransactionSchemaCreate } from '../../schema/transaction/transactionsSchema.ts';
+import sharePriceService from "../../services/sharePrice/sharePriceService.ts";
+import userService from "../../services/user/userService.ts";
+import { SharePriceSchemaUpdate } from "../../schema/sharePrice/sharePricesSchema.ts";
+import { UserSchemaWalletUpdate } from "../../schema/user/usersSchema.ts";
+import { WalletSharePriceSchemaCreate, WalletSharePriceSchemaUpdate } from "../../schema/sharePrice/walletSharePricesSchema.ts";
+import walletSharePriceService from "../../services/sharePrice/walletSharePriceService.ts";
+import { SharePriceSchema } from "../../schema/sharePrice/sharePricesSchema.ts";
 import { UpdateByIdResponse } from "../../schema/utils/responsesSchema.ts";
-import { UserSchema } from "../../schema/usersSchema.ts";
-import { UpdateByIdSharePriceResponse } from "../../schema/sharePricesSchema.ts";
-import { WalletSharePriceSchema } from "../../schema/walletSharePricesSchema.ts";
+import { UserSchema } from "../../schema/user/usersSchema.ts";
+import { UpdateByIdSharePriceResponse } from "../../schema/sharePrice/sharePricesSchema.ts";
+import { WalletSharePriceSchema } from "../../schema/sharePrice/walletSharePricesSchema.ts";
 import { CreateResponse } from "../../schema/utils/responsesSchema.ts";
 import { InfoResponse } from "../../schema/utils/responsesSchema.ts";
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
@@ -29,13 +29,13 @@ const TransactionController = {
                 return;
             }
 
-            const transactionId = ctx.params.id;
-            const transaction = await transactionService.findById(Number(transactionId));
-            ctx.response.status = transaction.httpCode;
+            const userId = ctx.params.userId;
+            const userTransaction = await transactionService.findByUserId(Number(userId));
+            ctx.response.status = userTransaction.httpCode;
             ctx.response.body = {
-                success: transaction.success,
-                message: transaction.message,
-                transaction: transaction.data,
+                success: userTransaction.success,
+                message: userTransaction.message,
+                transaction: userTransaction.data,
             };
         } catch (error) {
             ctx.response.status = 500;
@@ -123,10 +123,14 @@ const TransactionController = {
             }
 
             // Recherche si l'utilisateur possède déjà cette action 
-
             const userWalletSharePriceResponse = await walletSharePriceService.findUserSharePrice(userResponse.data.id, sharePriceResponse.data.id);
+
             if (userWalletSharePriceResponse.success && userWalletSharePriceResponse.data !== null) {
                 // Modifie le volume d'action possèdé par l'utilisateur
+                if (typeof userWalletSharePriceResponse.data.volume === "string") {
+                    userWalletSharePriceResponse.data.volume = parseFloat(userWalletSharePriceResponse.data.volume);
+                }
+
                 const walletSharePriceUpdateResponse = await updateWalletSharePrice(userWalletSharePriceResponse.data, userWalletSharePriceResponse.data.volume + transactionDataRequest.volume)
                 if (!walletSharePriceUpdateResponse.success) {
                     ctx.response.status = walletSharePriceUpdateResponse.httpCode;
@@ -221,8 +225,7 @@ const TransactionController = {
             }
 
             // On calcul la valeur de vente
-            const sellValue = sharePriceResponse.data?.value * transactionDataRequest.volume;
-
+            const sellValue: number = sharePriceResponse.data?.value * transactionDataRequest.volume;
             // On met à jour le portefeuille de l'utilisateur
             // Cela permet aussi de sauvegarder le nouveau portefeuille de l'utilisateur
             const updateUserWallerResponse = await updateWallet(userResponse.data.id, sellValue)
@@ -237,7 +240,11 @@ const TransactionController = {
             }
 
             // On met à jour la nouvelle action, cela va également stocker dans l'historique de l'action les nouvelles valeurs
-            const newSharePriceVolume = sharePriceResponse.data.volume + transactionDataRequest.volume;
+            if (typeof sharePriceResponse.data.volume === "string") {
+                sharePriceResponse.data.volume = parseFloat(sharePriceResponse.data.volume)
+            }
+            const newSharePriceVolume: number = sharePriceResponse.data.volume + transactionDataRequest.volume;
+
             const sharePriceUpdateResponse = await updateSharePrice(sharePriceResponse.data, newSharePriceVolume);
 
             if (!sharePriceUpdateResponse.success || sharePriceUpdateResponse.sharePriceHistoryId === null) {
@@ -291,19 +298,23 @@ async function updateWallet(userId: number, value: number): Promise<UpdateByIdRe
 }
 
 async function updateSharePrice(sharePriceData: SharePriceSchema, newVolume: number): Promise<UpdateByIdSharePriceResponse> {
+    if (typeof sharePriceData.value === "string") {
+        sharePriceData.value = parseFloat(sharePriceData.value);
+    }
     const sharePriceUpdate: SharePriceSchemaUpdate = {
         id: sharePriceData.id,
         name: sharePriceData.name,
         value: calculateNewValue(sharePriceData.value, sharePriceData.volume, newVolume),
         volume: newVolume
     };
+
     return await sharePriceService.updateById(sharePriceUpdate);
 }
 
 async function updateWalletSharePrice(userWalletSharePriceDate: WalletSharePriceSchema, volume: number): Promise<UpdateByIdResponse<WalletSharePriceSchema>> {
     const walletSharePriceUpdateRequest: WalletSharePriceSchemaUpdate = {
         id: userWalletSharePriceDate.id,
-        volume: userWalletSharePriceDate.volume + volume
+        volume: volume
     };
     return await walletSharePriceService.updateVolumeById(walletSharePriceUpdateRequest);
 }
@@ -321,7 +332,7 @@ async function createTransaction(value: number, volume: number, typeTransaction:
 }
 
 const calculateNewValue = (previousValue: number, previousVolume: number, newVolume: number): number => {
-    return previousValue * (previousVolume / newVolume);
+    return parseFloat((previousValue * (previousVolume / newVolume)).toFixed(2));
 }
 
 export default TransactionController;

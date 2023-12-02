@@ -1,10 +1,8 @@
 import { Application, Router, oakCors, config } from "./deps.ts";
+import appRouter from "./routes/app/index.ts";
+import adminRouter from "./routes/admin/index.ts";
+import authRouter from "./routes/auth/authRouter.ts";
 
-import authRouter from "./routes/auth.ts";
-import roleRouter from "./routes/role.ts";
-import transactionRouter from "./routes/transaction.ts";
-import sharePriceRouter from "./routes/shareprice.ts";
-import userRouter from "./routes/user.ts";
 
 import RequestLimitMiddleware from "./middlewares/check-all-requests.ts"
 
@@ -20,11 +18,10 @@ const requestDuration = 60 * 1000; // Durée de la fenêtre de requêtes en mill
 const requestLimitMiddleware = RequestLimitMiddleware("server", maxRequests, requestDuration);
 app.use(requestLimitMiddleware);
 
+// Utilisation des routers
+router.use("/app", appRouter.routes());
 router.use("/auth", authRouter.routes());
-router.use("/role", roleRouter.routes());
-router.use("/share-price", sharePriceRouter.routes());
-router.use("/transaction", transactionRouter.routes());
-router.use("/user", userRouter.routes());
+router.use("/admin", adminRouter.routes());
 
 app.use(oakCors({ origin: "*" }));
 app.use(router.routes());

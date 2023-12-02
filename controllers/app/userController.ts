@@ -1,9 +1,9 @@
 import { Context } from "../../deps.ts";;
-import userService from "../../services/userService.ts";
+import userService from "../../services/user/userService.ts";
 import {
     UserSchemaWalletUpdate,
     UserSchemaInfoUpdate
-} from '../../schema/usersSchema.ts';
+} from '../../schema/user/usersSchema.ts';
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
 
 interface CustomContext extends Context {
@@ -19,7 +19,7 @@ const UserController = {
                 return;
             }
 
-            const userId = ctx.params.id;
+            const userId = ctx.params.userId;
             const user = await userService.findById(Number(userId));
             ctx.response.status = user.httpCode;
             ctx.response.body = {

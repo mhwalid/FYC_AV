@@ -1,5 +1,5 @@
 import { Context } from "../../deps.ts";
-import userLoginService from "../../services/userLoginService.ts";
+import userLoginService from "../../services/user/userLoginService.ts";
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
 
 interface CustomContext extends Context {
