@@ -16,6 +16,7 @@ const SharePriceController = {
       }
 
       const sharePrices = await sharePriceService.findAll();
+
       ctx.response.status = sharePrices.httpCode;
       ctx.response.body = {
         success: sharePrices.success,

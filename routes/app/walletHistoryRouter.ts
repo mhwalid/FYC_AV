@@ -3,6 +3,6 @@ import WalletHistoryController from "../../controllers/app/walletHistoryControll
 
 const walletHistoryRouter = new Router();
 
-walletHistoryRouter.get("/users/:userId", WalletHistoryController.findWalletHistoryByUserId);
+walletHistoryRouter.get("/users", WalletHistoryController.findWalletHistoryByUserId);
 
 export default walletHistoryRouter;

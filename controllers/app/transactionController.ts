@@ -15,6 +15,7 @@ import { WalletSharePriceSchema } from "../../schema/sharePrice/walletSharePrice
 import { CreateResponse } from "../../schema/utils/responsesSchema.ts";
 import { InfoResponse } from "../../schema/utils/responsesSchema.ts";
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
+import getConnectedUser from "../../utils/checkConnectedUser.ts";
 
 interface CustomContext extends Context {
     params: {
@@ -29,7 +30,10 @@ const TransactionController = {
                 return;
             }
 
-            const userId = ctx.params.userId;
+            const userId = getConnectedUser(ctx);
+            if (!userId) {
+                return
+            }
             const userTransaction = await transactionService.findByUserId(Number(userId));
             ctx.response.status = userTransaction.httpCode;
             ctx.response.body = {
@@ -53,6 +57,11 @@ const TransactionController = {
                 return;
             }
 
+            const userId = await getConnectedUser(ctx);
+            if (!userId) {
+                return
+            }
+
             const transactionDataRequest: RequestTransactionSchemaCreate = await ctx.request.body().value;
             const typeTransaction = "Achat";
 
@@ -69,7 +78,7 @@ const TransactionController = {
             }
 
             // On vérifie que l'utilisateur existe
-            const userResponse = await userService.findById(transactionDataRequest.userId)
+            const userResponse = await userService.findById(userId)
             if (!userResponse.success || userResponse.data === null) {
                 ctx.response.status = userResponse.httpCode;
                 ctx.response.body = {
@@ -175,6 +184,11 @@ const TransactionController = {
                 return;
             }
 
+            const userId = await getConnectedUser(ctx);
+            if (!userId) {
+                return
+            }
+
             const transactionDataRequest: RequestTransactionSchemaCreate = await ctx.request.body().value;
             const typeTransaction = "Vente";
 
@@ -191,7 +205,7 @@ const TransactionController = {
             }
 
             // On vérifie que l'utilisateur existe
-            const userResponse = await userService.findById(transactionDataRequest.userId)
+            const userResponse = await userService.findById(userId)
             if (!userResponse.success || userResponse.data === null) {
                 ctx.response.status = userResponse.httpCode;
                 ctx.response.body = {

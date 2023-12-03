@@ -1,13 +1,10 @@
-import { UserSchema } from "../user/usersSchema.ts";
-import { SharePriceSchema } from "./sharePricesSchema.ts";
-
 export interface WalletSharePriceSchema {
     id: number;
     volume: number;
     createdAt: Date;
     updatedAt: Date;
-    sharePrice: SharePriceSchema
-    user: UserSchema;
+    sharePriceId: number
+    userId: number;
 }
 
 export interface WalletSharePriceSchemaCreate {

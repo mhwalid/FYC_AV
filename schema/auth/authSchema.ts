@@ -2,19 +2,16 @@ export interface RegisterResponse {
     success: boolean,
     message: string,
     httpCode: number,
-    jwtToken: string | undefined;
+    jwtToken?: string,
+    userId?: number,
+    roleName?: string,
 }
 
 export interface LoginResponse {
-    jwtToken: string | undefined;
     success: boolean,
     message: string,
     httpCode: number,
-    userId: number | undefined
-}
-
-export interface LogoutResponse {
-    success: boolean,
-    message: string,
-    httpCode: number
+    jwtToken?: string;
+    userId?: number
+    roleName?: string,
 }

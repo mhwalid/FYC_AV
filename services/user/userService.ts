@@ -7,7 +7,8 @@ import {
   UserSchemaWalletUpdate,
   UserSchemaInfoUpdate,
   UserSchemaRoleUpdate,
-  UserSchemaActiveUpdate
+  UserSchemaActiveUpdate,
+  UserSchemaRegister
 } from "../../schema/user/usersSchema.ts";
 import {
   FindResponse,
@@ -153,7 +154,62 @@ const userService = {
         info: result as InfoResponse,
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la créartion de l'utilisateur : ${error.message}`);
+      throw new Error(`Erreur lors de la création de l'utilisateur : ${error.message}`);
+    }
+  },
+
+  register: async (data: UserSchemaRegister): Promise<CreateResponse<UserSchema>> => {
+    try {
+      const resultExistUserEmail = await userService.findByEmail(data.email);
+      if (resultExistUserEmail.success) {
+        return {
+          success: false,
+          message: "Erreur ce mail est déjà associé à un utilisateur",
+          httpCode: 409,
+          info: resultExistUserEmail.data as UserSchema,
+        };
+      }
+
+      const resultNotExistRoleName = await roleService.checkIfNameNotExists("USER")
+      if (resultNotExistRoleName.success) {
+        return {
+          success: !resultNotExistRoleName.success,
+          message: resultNotExistRoleName.message,
+          httpCode: resultNotExistRoleName.httpCode,
+          info: null
+        }
+      }
+
+      const salt = await bcrypt.genSalt(8);
+      const hashedPassword = await bcrypt.hash(data.password, salt);
+
+      const userData = {
+        ...data,
+        password: hashedPassword,
+        cduAcceptedAt: data.isCdu ? new Date() : null,
+      } as UserSchemaCreate;
+
+      const result = await dbClient.query(
+        usersQueries.create,
+        [
+          userData.firstName,
+          userData.lastName,
+          userData.email,
+          userData.password,
+          userData.wallet,
+          userData.isCdu,
+          userData.cduAcceptedAt,
+          resultNotExistRoleName.data?.id
+        ]
+      );
+      return {
+        success: true,
+        message: "Utilisateur enregistré avec succès",
+        httpCode: 201,
+        info: result as InfoResponse,
+      };
+    } catch (error) {
+      throw new Error(`Erreur lors de l'enregistrement de l'utilisateur : ${error.message}`);
     }
   },
 

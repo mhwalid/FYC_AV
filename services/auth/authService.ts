@@ -1,33 +1,49 @@
-import { bcrypt, create, verify } from "../../deps.ts";
-import { key } from "../../utils/apiKeys.ts";
+import { bcrypt, create } from "../../deps.ts";
+import { getKey } from "../../utils/keyManager.ts";
 
 import { UserLoginSchemaCreate } from "../../schema/user/userLoginsSchema.ts";
-import { UserSchemaCreate, UserSchemaLogin } from '../../schema/user/usersSchema.ts';
+import { UserSchemaRegister, UserSchemaLogin } from '../../schema/user/usersSchema.ts';
 import userService from "../user/userService.ts";
 import userLoginService from "../user/userLoginService.ts";
-import { LoginResponse, RegisterResponse, LogoutResponse } from "../../schema/auth/authSchema.ts";
+import { LoginResponse, RegisterResponse } from "../../schema/auth/authSchema.ts";
+import { Payload } from "https://deno.land/x/djwt@v2.9.1/mod.ts";
+import roleService from "../user/roleService.ts";
 
 const JWT_TOKEN_EXPIRATION_MINUTES = 5
 
 const AuthentificationService = {
-  async register(data: UserSchemaCreate): Promise<RegisterResponse> {
+  async register(data: UserSchemaRegister): Promise<RegisterResponse> {
     try {
-      const createUserResponse = await userService.create(userData);
+      const createUserResponse = await userService.register(data);
 
       if (createUserResponse.success) {
-        const jwtToken = await createJwtToken(createUserResponse.info?.lastInsertId, JWT_TOKEN_EXPIRATION_MINUTES);
-        return {
-          success: true,
-          message: "Enregistrement de l'utilisateur effectué avec succès",
-          httpCode: 200,
-          jwtToken: jwtToken
-        };
+        const jwtToken = await createJwtToken();
+
+        // Récupération du role de l'utilisateur
+        if (createUserResponse.info !== null) {
+          const roleResponse = await roleService.findByUserId(createUserResponse.info?.lastInsertId)
+          if (!roleResponse.success || roleResponse.data === null) {
+            return {
+              success: roleResponse.success,
+              message: roleResponse.message,
+              httpCode: roleResponse.httpCode
+            }
+          }
+
+          return {
+            success: true,
+            message: "Enregistrement de l'utilisateur effectué avec succès",
+            httpCode: 200,
+            jwtToken: jwtToken,
+            userId: createUserResponse.info?.lastInsertId,
+            roleName: roleResponse.data.name
+          };
+        }
       } else {
         return {
           success: false,
           message: createUserResponse.message,
-          httpCode: 400,
-          jwtToken: undefined
+          httpCode: 400
         };
       }
     } catch (error) {
@@ -47,15 +63,23 @@ const AuthentificationService = {
       if (!resultExistUserEmail.success || !passwordMatch) {
         return {
           success: false,
-          message: "Erreur lors de la connexion : Informations invalides",
-          httpCode: 400,
-          jwtToken: undefined,
-          userId: undefined
+          message: "Erreur lors de la connexion : Informations de connexion invalides",
+          httpCode: 400
         }
       }
 
+      // Récupération du role de l'utilisateur
       if (resultExistUserEmail.data !== null) {
-        const jwtToken = await createJwtToken(resultExistUserEmail.data.id, JWT_TOKEN_EXPIRATION_MINUTES);
+        const roleResponse = await roleService.findByUserId(resultExistUserEmail.data.id)
+        if (!roleResponse.success || roleResponse.data === null) {
+          return {
+            success: roleResponse.success,
+            message: roleResponse.message,
+            httpCode: roleResponse.httpCode
+          }
+        }
+
+        const jwtToken = await createJwtToken();
 
         // Ajoute la connexion de l'utilisateur à notre table de suivi des connexions
         const userLoginCreate: UserLoginSchemaCreate = {
@@ -68,54 +92,30 @@ const AuthentificationService = {
           message: "Connexion réussi",
           httpCode: 200,
           jwtToken: jwtToken,
-          userId: resultExistUserEmail.data.id
+          userId: resultExistUserEmail.data.id,
+          roleName: roleResponse.data.name
         }
 
       }
       return {
         success: false,
         message: "Erreur aucun utilisateur trouvé",
-        httpCode: 404,
-        jwtToken: undefined,
-        userId: undefined
+        httpCode: 404
       }
     } catch (error) {
       throw new Error(`Erreur lors de la connexion de l'utilisateur : ${error.message}`);
     }
   },
-
-  logout(token: string): LogoutResponse {
-    try {
-
-      disableJwtToken(token);
-
-      return {
-        success: true,
-        message: "Deconnexion réussi",
-        httpCode: 200,
-      }
-    } catch (error) {
-      throw new Error(`Error during logout: ${error.message}`);
-    }
-  }
 };
 
-async function createJwtToken(userId: number, expiresInMinutes: number): Promise<string> {
-  const payload = {
-    exp: Math.floor(Date.now() / 1000) + (expiresInMinutes * 60), // Temps d'expiration UNIX
-    foundUserId: userId
+async function createJwtToken(): Promise<string> {
+  const payload: Payload = {
+    exp: Math.floor(Date.now() / 1000) + (JWT_TOKEN_EXPIRATION_MINUTES * 60), // Temps d'expiration UNIX
   };
-  const jwtToken = await create({ alg: "HS512", typ: "JWT" }, payload, key);
+  console.log(await getKey());
+
+  const jwtToken = await create({ alg: "HS512", typ: "JWT" }, payload, await getKey());
   return jwtToken;
-}
-
-async function disableJwtToken(jwtToken: string) {
-  const jwtPayload = await verify(jwtToken, key);
-  // Faire expiré le token
-  const actualTimeStampUnix = Math.floor(Date.now() / 1000)
-  jwtPayload.exp = actualTimeStampUnix
-
-  return jwtPayload;
 }
 
 export default AuthentificationService;

@@ -1,42 +1,46 @@
 import { Context, verify, type RouterMiddleware } from "../deps.ts";;
-import { key } from "../utils/apiKeys.ts";
-// Middleware pour vérifier le token JWT
-export const validateJwtMiddleware: RouterMiddleware<string> = async (ctx: Context, next: any) => {
-  // const headers = ctx.request.headers;
-  // const authHeader = headers.get("Authorization");
+import { getKey } from "../utils/keyManager.ts";
+import CookiesHandler from "../utils/cookiesHandler.ts";
 
-  // if (!authHeader) {
-  //   ctx.response.status = 401;
-  //   ctx.response.body = { error: "No authorization header" };
-  //   return;
-  // }
+export const validateAuthentificationMiddleware: (role: string) => RouterMiddleware<string> = (role) => {
+  return async (ctx: Context, next: any) => {
+    const token = await CookiesHandler.getCookie(ctx, 'token');
+    const userRole = await CookiesHandler.getCookie(ctx, 'role');
 
-  // const jwt = authHeader.split(" ")[1];
-
-
-  const token = await ctx.cookies.get('token');
-
-  if (!token) {
-    ctx.response.status = 401;
-    ctx.response.body = { error: "No JWT" };
-    return;
-  }
-
-  try {
-    const jwtPayload = await verify(token, key);
-    // Vérifier si le token a expiré
-    const actualTimeStampUnix = Math.floor(Date.now() / 1000)
-    if (jwtPayload.exp && jwtPayload.exp < actualTimeStampUnix) {
+    if (token === undefined || userRole === undefined) {
       ctx.response.status = 401;
-      ctx.response.body = { error: 'Token expired' };
+      ctx.response.body = { error: 'Vous n\'êtes pas connecté' };
       return;
     }
 
-    ctx.state.jwtPayload = jwtPayload;
-    await next();
-  } catch (error) {
-    ctx.response.status = 401;
-    ctx.response.body = { error: error.message };
-    return;
-  }
-}
+    if (userRole !== role) {
+      ctx.response.status = 403;
+      ctx.response.body = { error: 'Vous n\'avez pas l\'autorisation d\'accéder à cette ressource' };
+      return;
+    }
+
+    try {
+      console.log('i');
+      console.log(token, await getKey());
+
+
+      // Vérifier si le token a expiré
+      const jwtPayload = await verify(token, await getKey());
+      console.log(jwtPayload);
+
+      const actualTimeStampUnix = Math.floor(Date.now() / 1000)
+      if (jwtPayload.exp && jwtPayload.exp < actualTimeStampUnix) {
+        ctx.response.status = 401;
+        ctx.response.body = { error: 'Votre session a expiré, merci de vous reconnecter' };
+        return;
+      }
+
+      ctx.state.jwtPayload = jwtPayload;
+      await next();
+    } catch (error) {
+      ctx.response.status = 401;
+      ctx.response.body = { error: error.message };
+      return;
+    }
+  };
+};

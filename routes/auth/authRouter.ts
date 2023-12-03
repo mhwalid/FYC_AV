@@ -16,8 +16,8 @@ authRouter.use(async (ctx, next) => {
 authRouter
   .post("/register", AuthController.register)
   .post("/login", AuthController.login)
-  .post("/logout", AuthController.logout)
-  .post("/unsubscribe", AuthController.unsubscribe)
+  .get("/logout", AuthController.logout)
+  .get("/:userId/unsubscribe", AuthController.unsubscribe)
 
 
 export default authRouter;

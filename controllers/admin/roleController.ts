@@ -1,9 +1,8 @@
 import { Context } from "../../deps.ts";
 import roleService from "../../services/user/roleService.ts";
 import { RoleSchemaCreate, RoleSchemaUpdate } from '../../schema/user/rolesSchema.ts';
-import { UserSchemaRoleUpdate } from "../../schema/user/usersSchema.ts";
-import userService from "../../services/user/userService.ts";
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
+import getConnectedUser from "../../utils/checkConnectedUser.ts";
 
 interface CustomContext extends Context {
     params: {
@@ -83,34 +82,6 @@ const RoleController = {
                 success: false,
                 message: error.message,
                 role: null,
-            };
-        }
-    },
-
-    async updateUserRole(ctx: CustomContext) {
-        try {
-            if (!checkHttpMethod(ctx, ['PUT'])) {
-                return;
-            }
-
-            const roleId = ctx.params.roleId;
-            // Récupération des valeurs du Body
-            const userData: UserSchemaRoleUpdate = await ctx.request.body().value;
-            userData.roleId = Number(roleId)
-
-            const updatedUserRole = await userService.updateUserRoleById(userData);
-            ctx.response.status = updatedUserRole.httpCode;
-            ctx.response.body = {
-                success: updatedUserRole.success,
-                message: updatedUserRole.message,
-                user: updatedUserRole.data,
-            };
-        } catch (error) {
-            ctx.response.status = 500;
-            ctx.response.body = {
-                success: false,
-                message: error.message,
-                user: null,
             };
         }
     },

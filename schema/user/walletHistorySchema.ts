@@ -1,11 +1,9 @@
-import { UserSchema } from "./usersSchema.ts";
-
 export interface WalletHistorySchema {
     id: number;
     value: number;
     operationType: string;
     createdAt: Date;
-    user: UserSchema;
+    userId: number;
 }
 
 export interface WalletHistorySchemaCreate {

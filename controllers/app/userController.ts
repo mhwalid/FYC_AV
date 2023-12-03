@@ -5,6 +5,7 @@ import {
     UserSchemaInfoUpdate
 } from '../../schema/user/usersSchema.ts';
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
+import getConnectedUser from "../../utils/checkConnectedUser.ts";
 
 interface CustomContext extends Context {
     params: {
@@ -19,8 +20,12 @@ const UserController = {
                 return;
             }
 
-            const userId = ctx.params.userId;
-            const user = await userService.findById(Number(userId));
+            const userId = await getConnectedUser(ctx);
+            if (!userId) {
+                return
+            }
+
+            const user = await userService.findById(userId);
             ctx.response.status = user.httpCode;
             ctx.response.body = {
                 success: user.success,
@@ -44,9 +49,13 @@ const UserController = {
                 return;
             }
 
-            const userId = ctx.params.userId;
+            const userId = await getConnectedUser(ctx);
+            if (!userId) {
+                return
+            }
+
             const userData: UserSchemaInfoUpdate = await ctx.request.body().value;
-            userData.id = Number(userId)
+            userData.id = userId
 
             const updatedUserInfo = await userService.updateUserInfoById(userData);
             ctx.response.status = updatedUserInfo.httpCode;
@@ -71,9 +80,13 @@ const UserController = {
                 return;
             }
 
-            const userId = ctx.params.userId;
+            const userId = await getConnectedUser(ctx);
+            if (!userId) {
+                return
+            }
+
             const userData: UserSchemaWalletUpdate = await ctx.request.body().value;
-            userData.id = Number(userId)
+            userData.id = userId
 
             const updatedUserWallet = await userService.updateUserWalletById(userData);
             ctx.response.status = updatedUserWallet.httpCode;

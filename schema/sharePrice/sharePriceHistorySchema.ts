@@ -1,13 +1,9 @@
-import { TransactionSchema } from "../transaction/transactionsSchema.ts";
-import { SharePriceSchema } from "./sharePricesSchema.ts";
-
 export interface SharePriceHistorySchema {
   id: number;
   oldValue: number;
   oldVolume: number;
   createdAt: Date;
-  sharePrice: SharePriceSchema;
-  transaction: TransactionSchema[];
+  sharePriceId: number;
 }
 
 export interface SharePriceHistorySchemaCreate {

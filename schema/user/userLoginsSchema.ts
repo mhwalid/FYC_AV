@@ -1,8 +1,6 @@
-import { UserSchema } from "./usersSchema.ts";
-
 export interface UserLoginSchema {
   id: number;
-  user: UserSchema;
+  userId: number;
   loginAt: Date;
 }
 

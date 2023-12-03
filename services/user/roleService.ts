@@ -9,6 +9,7 @@ import {
   UpdateByIdResponse,
   InfoResponse
 } from "../../schema/utils/responsesSchema.ts";
+import userService from "./userService.ts";
 
 const roleService = {
   findAll: async (): Promise<FindResponse<RoleSchema>> => {
@@ -16,12 +17,12 @@ const roleService = {
       const result = await dbClient.query(roleQueries.findAll);
       return {
         success: true,
-        message: "Liste des roles récupèré avec succès",
+        message: "Liste des rôles récupèré avec succès",
         httpCode: 200,
         data: result as RoleSchema[]
       }
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération des roles :  ${error.message}`);
+      throw new Error(`Erreur lors de la récupération des rôles :  ${error.message}`);
     }
   },
 
@@ -31,19 +32,51 @@ const roleService = {
       if (role.length === 0) {
         return {
           success: false,
-          message: "Erreur le role n'existe pas",
+          message: "Erreur le rôle n'existe pas",
           httpCode: 404,
           data: null
         }
       }
       return {
         success: true,
-        message: "Role récupèré avec succès",
+        message: "Rôle récupèré avec succès",
         httpCode: 200,
         data: role as RoleSchema
       }
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération du role : ${error.message}`);
+      throw new Error(`Erreur lors de la récupération du rôle : ${error.message}`);
+    }
+  },
+
+  findByUserId: async (userId: number): Promise<FindOneResponse<RoleSchema>> => {
+    try {
+      const userExists = await userService.findById(userId);
+      if (!userExists.success) {
+        return {
+          success: false,
+          message: userExists.message,
+          httpCode: userExists.httpCode,
+          data: userExists.data as null
+        };
+      }
+
+      const role = await dbClient.query(roleQueries.findByUserId, [userId]);
+      if (role.length === 0) {
+        return {
+          success: false,
+          message: "Erreur aucun role pour l'utilisateur",
+          httpCode: 404,
+          data: null,
+        };
+      }
+      return {
+        success: true,
+        message: "Rôle récupèré avec succès",
+        httpCode: 200,
+        data: role[0] as RoleSchema
+      }
+    } catch (error) {
+      throw new Error(`Erreur lors de la récupération du rôle : ${error.message}`);
     }
   },
 
@@ -54,19 +87,19 @@ const roleService = {
       if (existingRole.length > 0) {
         return {
           success: false,
-          message: "Erreur un role avec le même nom existe déjà",
+          message: "Erreur un rôle avec le même nom existe déjà",
           httpCode: 409,
           data: existingRole[0] as RoleSchema
         }
       }
       return {
         success: true,
-        message: "Le role n'existe pas",
+        message: "Le rôle n'existe pas",
         httpCode: 404,
         data: null
       }
     } catch (error) {
-      throw new Error(`Erreur lors de la vérification de l'existence d'un role avec ce nom : ${error.message}`);
+      throw new Error(`Erreur lors de la vérification de l'existence d'un rôle avec ce nom : ${error.message}`);
     }
   },
 
@@ -86,7 +119,7 @@ const roleService = {
       if (isRoleInUse) {
         return {
           success: false,
-          message: "Erreur lors de la suppresion du role. Il est utilisé par au moins utilisateur",
+          message: "Erreur lors de la suppression du rôle. Il est utilisé par au moins utilisateur",
           httpCode: 400,
         };
       }
@@ -95,11 +128,11 @@ const roleService = {
 
       return {
         success: true,
-        message: "Le role a été supprimé avec succès",
+        message: "Le rôle a été supprimé avec succès",
         httpCode: 200,
       }
     } catch (error) {
-      throw new Error(`Erreur lors de la suppresion du role : ${error.message}`);
+      throw new Error(`Erreur lors de la suppression du rôle : ${error.message}`);
     }
   },
 
@@ -122,12 +155,12 @@ const roleService = {
 
       return {
         success: true,
-        message: "Role crée avec succès",
+        message: "Rôle crée avec succès",
         httpCode: 201,
         info: roleCreate as InfoResponse
       }
     } catch (error) {
-      throw new Error(`Erreur lors de la création du role : ${error.message}`);
+      throw new Error(`Erreur lors de la création du rôle : ${error.message}`);
     }
   },
 
@@ -160,12 +193,12 @@ const roleService = {
 
       return {
         success: true,
-        message: "Role mis à jour avec succès",
+        message: "Rôle mis à jour avec succès",
         httpCode: 200,
         data: roleUpdate as InfoResponse
       }
     } catch (error) {
-      throw new Error(`Erreur lors de la mise à jour du role : ${error.message}`);
+      throw new Error(`Erreur lors de la mise à jour du rôle : ${error.message}`);
     }
   },
 
@@ -174,7 +207,7 @@ const roleService = {
       const result = await dbClient.query(roleQueries.checkRoleInUserUsage, [id]);
       return result[0].count > 0;
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération du nombre d'utilisateur ayant le role :  ${error.message}`);
+      throw new Error(`Erreur lors de la récupération du nombre d'utilisateur ayant le rôle :  ${error.message}`);
     }
   },
 };

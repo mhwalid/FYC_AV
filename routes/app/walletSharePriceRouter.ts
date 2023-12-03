@@ -3,7 +3,7 @@ import WalletSharePriceController from "../../controllers/app/walletSharePriceCo
 
 const walletSharePriceRouter = new Router();
 
-walletSharePriceRouter.get("/users/:userId", WalletSharePriceController.findWalletSharePriceByUserId);
-walletSharePriceRouter.get("/users/:userId/sharePrices/:sharePriceId", WalletSharePriceController.findUserSharePrice);
+walletSharePriceRouter.get("/users", WalletSharePriceController.findWalletSharePriceByUserId);
+walletSharePriceRouter.get("/users/sharePrices/:sharePriceId", WalletSharePriceController.findUserSharePrice);
 
 export default walletSharePriceRouter;

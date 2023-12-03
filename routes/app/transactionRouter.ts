@@ -3,7 +3,7 @@ import TransactionController from "../../controllers/app/transactionController.t
 
 const transactionRouter = new Router();
 
-transactionRouter.get("/users/:userId", TransactionController.getTransactionByUserId);
+transactionRouter.get("/users", TransactionController.getTransactionByUserId);
 transactionRouter.post("/buy", TransactionController.buySharePrice);
 transactionRouter.post("/sell", TransactionController.sellSharePrice);
 

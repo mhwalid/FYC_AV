@@ -3,7 +3,7 @@ import userService from "../../services/user/userService.ts";
 import {
     UserSchemaCreate
 } from '../../schema/user/usersSchema.ts';
-import { UserSchemaActiveUpdate } from "../../schema/user/usersSchema.ts";
+import { UserSchemaActiveUpdate, UserSchemaRoleUpdate } from "../../schema/user/usersSchema.ts";
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
 import { UserSchemaFindAllFilters } from "../../schema/user/usersSchema.ts";
 
@@ -115,6 +115,34 @@ const UserController = {
                 success: false,
                 message: error.message,
                 data: null,
+            };
+        }
+    },
+
+    async updateUserRole(ctx: CustomContext) {
+        try {
+            if (!checkHttpMethod(ctx, ['PUT'])) {
+                return;
+            }
+
+            const userId = ctx.params.userId;
+            // Récupération des valeurs du Body
+            const userData: UserSchemaRoleUpdate = await ctx.request.body().value;
+            userData.id = Number(userId)
+
+            const updatedUserRole = await userService.updateUserRoleById(userData);
+            ctx.response.status = updatedUserRole.httpCode;
+            ctx.response.body = {
+                success: updatedUserRole.success,
+                message: updatedUserRole.message,
+                user: updatedUserRole.data,
+            };
+        } catch (error) {
+            ctx.response.status = 500;
+            ctx.response.body = {
+                success: false,
+                message: error.message,
+                user: null,
             };
         }
     },
