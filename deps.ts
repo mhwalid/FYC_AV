@@ -17,4 +17,16 @@ export { verify, create } from "https://deno.land/x/djwt@v2.9.1/mod.ts";
 // Import du module bcrypt
 export * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
 
+// Validateur DENO
+export {
+    validate,
+    IsEmail,
+    IsNotEmpty,
+    IsBoolean,
+    IsNumber,
+    IsOptional,
+    IsDate,
+    ValidationError
+} from "https://deno.land/x/deno_class_validator@v1.0.0/mod.ts";
+
 

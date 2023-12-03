@@ -1,6 +1,6 @@
 import { Context } from "../../deps.ts";
 import AuthenticationService from "../../services/auth/authService.ts";
-import { UserSchemaCreate, UserSchemaLogin, UserSchemaActiveUpdate } from '../../schema/user/usersSchema.ts';
+import { UserSchemaRegister, UserSchemaLogin, UserSchemaActiveUpdate } from '../../schema/user/usersSchema.ts';
 import userService from "../../services/user/userService.ts";
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
 import CookiesHandler from "../../utils/cookiesHandler.ts";
@@ -18,7 +18,7 @@ const AuthController = {
                 return;
             }
 
-            const userData: UserSchemaCreate = await ctx.request.body().value;
+            const userData: UserSchemaRegister = await ctx.request.body().value;
 
             const registrationResponse = await AuthenticationService.register(userData);
 
@@ -30,7 +30,8 @@ const AuthController = {
             ctx.response.status = registrationResponse.httpCode;
             ctx.response.body = {
                 success: registrationResponse.success,
-                message: registrationResponse.message
+                message: registrationResponse.message,
+                errors: registrationResponse.errors
             };
         } catch (error) {
             ctx.response.status = 500;

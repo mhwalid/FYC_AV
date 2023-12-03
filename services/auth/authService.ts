@@ -1,4 +1,4 @@
-import { bcrypt, create } from "../../deps.ts";
+import { bcrypt, create, validate } from "../../deps.ts";
 import { getKey } from "../../utils/keyManager.ts";
 
 import { UserLoginSchemaCreate } from "../../schema/user/userLoginsSchema.ts";
@@ -14,6 +14,17 @@ const JWT_TOKEN_EXPIRATION_MINUTES = 5
 const AuthentificationService = {
   async register(data: UserSchemaRegister): Promise<RegisterResponse> {
     try {
+      const errors = await validate(new UserSchemaRegister(data));
+
+      if (errors.length > 0) {
+        return {
+          success: false,
+          message: "Les données fournies ne sont pas valides",
+          httpCode: 422,
+          errors: errors
+        }
+      }
+
       const createUserResponse = await userService.register(data);
 
       if (createUserResponse.success) {

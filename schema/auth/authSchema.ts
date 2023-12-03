@@ -1,3 +1,5 @@
+import { ValidationError } from "../../deps.ts"
+
 export interface RegisterResponse {
     success: boolean,
     message: string,
@@ -5,6 +7,7 @@ export interface RegisterResponse {
     jwtToken?: string,
     userId?: number,
     roleName?: string,
+    errors?: ValidationError[]
 }
 
 export interface LoginResponse {
