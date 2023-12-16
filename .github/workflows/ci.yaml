@@ -14,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@latest
 
       - name: Setup Deno
-        uses: denolib/setup-deno@v2
+        uses: denolib/setup-deno@latest
         with:
           deno-version: 1.38.3
 

@@ -1,7 +1,7 @@
 import dbClient from "../../db/connectDb.ts";
 import walletSharePriceQueries from "../../db/queries/sharePrice/walletSharePriceQueries.ts";
 import { WalletSharePriceSchema, WalletSharePriceSchemaCreate, WalletSharePriceSchemaUpdate } from "../../schema/sharePrice/walletSharePricesSchema.ts";
-import { FindResponse, CreateResponse, UpdateByIdResponse, DeleteByIdResponse, FindOneResponse } from "../../schema/utils/responsesSchema.ts";
+import { FindResponse, CreateResponse, UpdateByIdResponse, FindOneResponse } from "../../schema/utils/responsesSchema.ts";
 import { InfoResponse } from "../../schema/utils/responsesSchema.ts";
 import userService from "../user/userService.ts";
 import sharePriceService from "./sharePriceService.ts";

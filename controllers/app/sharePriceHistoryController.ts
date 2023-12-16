@@ -16,7 +16,6 @@ const SharePriceHistoryController = {
       }
 
       const sharePriceHistory = await sharePriceHistoryService.findAll();
-      console.log(sharePriceHistory);
 
       ctx.response.status = sharePriceHistory.httpCode;
       ctx.response.body = {

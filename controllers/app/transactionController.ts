@@ -14,8 +14,8 @@ import { UpdateByIdSharePriceResponse } from "../../schema/sharePrice/sharePrice
 import { WalletSharePriceSchema } from "../../schema/sharePrice/walletSharePricesSchema.ts";
 import { CreateResponse } from "../../schema/utils/responsesSchema.ts";
 import { InfoResponse } from "../../schema/utils/responsesSchema.ts";
-import checkHttpMethod from "../../utils/checkHttpMethod.ts";
 import getConnectedUser from "../../utils/checkConnectedUser.ts";
+import checkHttpMethod from "../../utils/checkHttpMethod.ts";
 
 interface CustomContext extends Context {
     params: {

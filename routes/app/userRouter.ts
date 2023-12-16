@@ -4,7 +4,7 @@ import UserController from "../../controllers/app/userController.ts";
 const userRouter = new Router();
 
 userRouter.get("/", UserController.getUserById);
-userRouter.put("/info", UserController.updateUserInfo);
-userRouter.put("/wallet", UserController.updateUserWallet);
+userRouter.patch("/info", UserController.updateUserInfo);
+userRouter.patch("/wallet", UserController.updateUserWallet);
 
 export default userRouter;

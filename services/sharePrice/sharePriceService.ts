@@ -9,7 +9,6 @@ import {
 import {
   FindResponse,
   FindOneResponse,
-  DeleteByIdResponse,
   CreateResponse,
   InfoResponse
 } from "../../schema/utils/responsesSchema.ts";

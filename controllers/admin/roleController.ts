@@ -2,7 +2,6 @@ import { Context } from "../../deps.ts";
 import roleService from "../../services/user/roleService.ts";
 import { RoleSchemaCreate, RoleSchemaUpdate } from '../../schema/user/rolesSchema.ts';
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
-import getConnectedUser from "../../utils/checkConnectedUser.ts";
 
 interface CustomContext extends Context {
     params: {
@@ -61,7 +60,7 @@ const RoleController = {
 
     async updateRole(ctx: CustomContext) {
         try {
-            if (!checkHttpMethod(ctx, ['PUT'])) {
+            if (!checkHttpMethod(ctx, ['PATCH'])) {
                 return;
             }
 

@@ -5,7 +5,7 @@ const roleRouter = new Router();
 
 roleRouter.get("/", RoleController.getAllRoles);
 roleRouter.post("/", RoleController.createRole);
-roleRouter.put("/:roleId", RoleController.updateRole);
+roleRouter.patch("/:roleId", RoleController.updateRole);
 roleRouter.delete("/:roleId", RoleController.deleteRole);
 
 export default roleRouter;

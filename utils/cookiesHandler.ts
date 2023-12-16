@@ -1,5 +1,3 @@
-// cookiesUtil.ts
-
 import { Context } from '../deps.ts';
 
 const CookiesHandler = {

@@ -1,4 +1,4 @@
-import { Context } from "../../deps.ts";;
+import { Context } from "../../deps.ts";
 import userService from "../../services/user/userService.ts";
 import {
     UserSchemaWalletUpdate,
@@ -45,7 +45,7 @@ const UserController = {
 
     async updateUserInfo(ctx: CustomContext) {
         try {
-            if (!checkHttpMethod(ctx, ['PUT'])) {
+            if (!checkHttpMethod(ctx, ['PATCH'])) {
                 return;
             }
 
@@ -76,7 +76,7 @@ const UserController = {
 
     async updateUserWallet(ctx: CustomContext) {
         try {
-            if (!checkHttpMethod(ctx, ['PUT'])) {
+            if (!checkHttpMethod(ctx, ['PATCH'])) {
                 return;
             }
 

@@ -53,8 +53,6 @@ const sharePriceHistoryService = {
 
   create: async (data: SharePriceHistorySchemaCreate): Promise<CreateResponse<InfoResponse>> => {
     try {
-      console.log(data);
-
       const sharePriceHistoryCreate = await dbClient.query(sharePriceHistoryQueries.create, [data.oldValue, data.oldVolume, data.sharePriceId]);
       return {
         success: true,
