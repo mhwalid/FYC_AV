@@ -123,7 +123,6 @@ async function createJwtToken(): Promise<string> {
   const payload: Payload = {
     exp: Math.floor(Date.now() / 1000) + (JWT_TOKEN_EXPIRATION_MINUTES * 60), // Temps d'expiration UNIX
   };
-  console.log(await getKey());
 
   const jwtToken = await create({ alg: "HS512", typ: "JWT" }, payload, await getKey());
   return jwtToken;

@@ -20,13 +20,8 @@ export const validateAuthentificationMiddleware: (role: string) => RouterMiddlew
     }
 
     try {
-      console.log('i');
-      console.log(token, await getKey());
-
-
       // Vérifier si le token a expiré
       const jwtPayload = await verify(token, await getKey());
-      console.log(jwtPayload);
 
       const actualTimeStampUnix = Math.floor(Date.now() / 1000)
       if (jwtPayload.exp && jwtPayload.exp < actualTimeStampUnix) {
