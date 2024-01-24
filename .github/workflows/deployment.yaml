@@ -2,12 +2,12 @@ name: deno-deployment
 
 on:
   pull_request:
-    branches: [p2-api]
+    branches: [master]
   push:
     tags:
       - '*'
     branches:
-      - p2-api
+      - master
 
 jobs:
   ci:
@@ -28,7 +28,7 @@ jobs:
   continuous-deployment:
     runs-on: ubuntu-latest
     needs: [ci]
-    if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'p2-api'
+    if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'master'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -41,7 +41,7 @@ jobs:
 
       - name: Push if pull request
         uses: docker/build-push-action@v4
-        if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'p2-api'
+        if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'master'
         with:
           push: true
           context: ./
