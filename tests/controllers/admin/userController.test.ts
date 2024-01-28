@@ -40,7 +40,7 @@ Deno.test("La récupérations des utilisateurs ce passent correctement", async (
     };
 
     // Remplacez la méthode réelle par le mock
-    const originalUserService = userService;
+    const originalUserService = Object.assign({}, userService);
     userService.findAll = mockUserService.findAll;
 
     await UserController.getAllUsers(ctx);
@@ -101,7 +101,7 @@ Deno.test("La récupération d'un utilisateur ce passe correctement", async () =
     };
 
     // Remplacez la méthode réelle par le mock
-    const originalUserService = userService;
+    const originalUserService = Object.assign({}, userService);
     userService.findById = mockUserService.findById;
 
     await UserController.getUserById(ctx);
@@ -172,7 +172,7 @@ Deno.test("La création d'un utilisateur ce passe correctement", async () => {
     };
 
     // Remplacez la méthode réelle par le mock
-    const originalUserService = userService;
+    const originalUserService = Object.assign({}, userService);
     userService.create = mockUserService.create;
 
     await UserController.createUser(ctx);
@@ -237,7 +237,7 @@ Deno.test("La mise à jour de l'activité d'un utilisateur ce passe correctement
     };
 
     // Remplacez la méthode réelle par le mock
-    const originalUserService = userService;
+    const originalUserService = Object.assign({}, userService);
     userService.findById = mockUserService.findById;
     userService.updateUserIsActive = mockUserService.updateUserIsActive;
 

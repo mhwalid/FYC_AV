@@ -31,7 +31,6 @@ const TransactionController = {
             }
 
             const userId = getConnectedUser(ctx);
-
             if (!userId) {
                 return
             }
@@ -59,8 +58,6 @@ const TransactionController = {
             }
 
             const userId = await getConnectedUser(ctx);
-            console.log(userId, ctx);
-
             if (!userId) {
                 return
             }
