@@ -18,7 +18,7 @@ export interface UserSchema {
   cduAcceptedAt: Date;
   registerAt: Date;
   updatedAt: Date;
-  unsubscribeAt: Date;
+  unsubscribeAt: Date | null;
   isActive: boolean;
   roleId: number;
 }

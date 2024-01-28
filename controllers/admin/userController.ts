@@ -95,7 +95,7 @@ const UserController = {
 
     async updateActiveUser(ctx: Context) {
         try {
-            if (!checkHttpMethod(ctx, ['POST'])) {
+            if (!checkHttpMethod(ctx, ['PATCH'])) {
                 return;
             }
 
@@ -121,7 +121,7 @@ const UserController = {
 
     async updateUserRole(ctx: CustomContext) {
         try {
-            if (!checkHttpMethod(ctx, ['PUT'])) {
+            if (!checkHttpMethod(ctx, ['PATCH'])) {
                 return;
             }
 

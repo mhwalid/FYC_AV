@@ -6,7 +6,7 @@ const userRouter = new Router();
 userRouter.get("/", UserController.getAllUsers);
 userRouter.get("/:userId", UserController.getUserById);
 userRouter.post("/", UserController.createUser);
-userRouter.post("/active", UserController.updateActiveUser);
+userRouter.patch("/:userId/active", UserController.updateActiveUser);
 userRouter.patch("/:userId/roles", UserController.updateUserRole);
 
 export default userRouter;
