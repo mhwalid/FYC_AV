@@ -20,6 +20,12 @@ export { format } from "https://deno.land/std/datetime/mod.ts";
 // Import du module bcrypt
 export * as bcrypt from "https://deno.land/x/bcrypt/mod.ts";
 
+// Import du module path
+export { join } from "https://deno.land/std/path/mod.ts";
+
+// Import du module fs
+export { ensureDir } from "https://deno.land/std/fs/mod.ts";
+
 // Validateur DENO
 export {
     validate,

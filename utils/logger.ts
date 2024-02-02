@@ -1,10 +1,4 @@
-import { config, format } from "../deps.ts";
-
-const errorLogFile = "error_logs.txt";
-const infoLogFile = "info_logs.txt";
-const debugLogFile = "debug_logs.txt";
-const warningLogFile = "warning_logs.txt";
-const connectionLogFile = "connection_logs.txt";
+import { config, format, join, ensureDir } from "../deps.ts";
 
 const encoder = new TextEncoder();
 
@@ -23,33 +17,39 @@ const mainModulePath = Deno.mainModule;
 
 export async function logToFile(level: LogLevel, message: string): Promise<void> {
   try {
-    const formattedDate = format(new Date(), "dd-MM-yyyy HH:mm");
+    const currentDate = new Date();
+    const formattedDate = format(currentDate, "dd-MM-yyyy HH:mm");
     const log = `${formattedDate} [${level}] - ${message} - Source: ${mainModulePath}\n`;
 
     let logFile = "";
     switch (level) {
       case LogLevel.ERROR:
-        logFile = errorLogFile;
+        logFile = "error_logs.txt";
         break;
       case LogLevel.INFO:
-        logFile = infoLogFile;
+        logFile = "info_logs.txt";
         break;
       case LogLevel.CONNECTION:
-        logFile = connectionLogFile;
+        logFile = "connection_logs.txt";
         break;
       case LogLevel.DEBUG:
-        logFile = debugLogFile;
+        logFile = "debug_logs.txt";
         break;
       case LogLevel.WARNING:
-        logFile = warningLogFile;
+        logFile = "warning_logs.txt";
         break;
       default:
         console.error("Niveau de log non pris en charge:", level);
         return;
     }
 
-    // Ouverture du fichier
-    const file = await Deno.open(LOGS_PATH + logFile, { create: true, append: true, write: true });
+    // Création du dossier
+    const logFolderPath = join(LOGS_PATH, level.toLowerCase());
+    await ensureDir(logFolderPath);
+
+    // Création du fichier
+    const logFilePath = join(logFolderPath, `${format(currentDate, "ddMMyyyy")}_${logFile}`);
+    const file = await Deno.open(logFilePath, { create: true, append: true, write: true });
 
     // Écriture dans le fichier
     await Deno.write(file.rid, encoder.encode(log));
