@@ -12,13 +12,13 @@ interface CustomContext extends Context {
 const WalletHistoryController = {
   async findWalletHistoryByUserId(ctx: CustomContext) {
     try {
-      if (!checkHttpMethod(ctx, ['GET'])) {
+      if (!checkHttpMethod(ctx, ["GET"])) {
         return;
       }
 
       const userId = await getConnectedUser(ctx);
       if (!userId) {
-        return
+        return;
       }
 
       const userWalletHistory = await walletHistoryService.findByUserId(userId);

@@ -4,6 +4,9 @@ import TransactionController from "../../controllers/admin/transactionController
 const transactionRouter = new Router();
 
 transactionRouter.get("/", TransactionController.getAllTransactions);
-transactionRouter.get("/users/:userId", TransactionController.getTransactionByUserId);
+transactionRouter.get(
+  "/users/:userId",
+  TransactionController.getTransactionByUserId,
+);
 
 export default transactionRouter;

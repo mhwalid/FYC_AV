@@ -1,16 +1,21 @@
-import { Context } from "../deps.ts";;
+import { Context } from "../deps.ts";
 
-const RequestLimitMiddleware = (key: string, maxRequests: number, requestDuration: number) => {
+const RequestLimitMiddleware = (
+  key: string,
+  maxRequests: number,
+  requestDuration: number,
+) => {
   const requestCounts = new Map<string, number>();
 
   return async (ctx: Context, next: any) => {
-    const ipAddress = ctx.request.ip
+    const ipAddress = ctx.request.ip;
 
     const currentTimestamp = Date.now();
     const userAttempts = requestCounts.get(key + ipAddress) || 0;
 
     if (userAttempts >= maxRequests) {
-      const lastRequestTimestamp = requestCounts.get(`${key + ipAddress}_lastAttempt`) || 0;
+      const lastRequestTimestamp =
+        requestCounts.get(`${key + ipAddress}_lastAttempt`) || 0;
       if (currentTimestamp - lastRequestTimestamp < requestDuration) {
         ctx.response.status = 429;
         ctx.response.body = {

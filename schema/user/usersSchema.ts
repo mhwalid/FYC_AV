@@ -1,11 +1,11 @@
 import {
+  IsBoolean,
+  IsDate,
   IsEmail,
   IsNotEmpty,
-  IsBoolean,
   IsNumber,
   IsOptional,
-  IsDate,
-} from '../../deps.ts';
+} from "../../deps.ts";
 
 export interface UserSchema {
   id: number;

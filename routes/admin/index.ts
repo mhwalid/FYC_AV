@@ -7,10 +7,9 @@ import userLoginRouter from "./userLoginRouter.ts";
 import userRouter from "./userRouter.ts";
 import { validateAuthentificationMiddleware } from "../../middlewares/check-auth.ts";
 
-
 const adminRouter = new Router();
 
-adminRouter.use(validateAuthentificationMiddleware('ADMIN'));
+adminRouter.use(validateAuthentificationMiddleware("ADMIN"));
 
 adminRouter.use("/roles", roleRouter.routes());
 adminRouter.use("/sharePrices", sharePriceRouter.routes());

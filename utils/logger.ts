@@ -1,4 +1,4 @@
-import { config, format, join, ensureDir } from "../deps.ts";
+import { config, ensureDir, format, join } from "../deps.ts";
 
 const encoder = new TextEncoder();
 
@@ -15,11 +15,15 @@ export enum LogLevel {
 
 const mainModulePath = Deno.mainModule;
 
-export async function logToFile(level: LogLevel, message: string): Promise<void> {
+export async function logToFile(
+  level: LogLevel,
+  message: string,
+): Promise<void> {
   try {
     const currentDate = new Date();
     const formattedDate = format(currentDate, "dd-MM-yyyy HH:mm");
-    const log = `${formattedDate} [${level}] - ${message} - Source: ${mainModulePath}\n`;
+    const log =
+      `${formattedDate} [${level}] - ${message} - Source: ${mainModulePath}\n`;
 
     let logFile = "";
     switch (level) {
@@ -48,8 +52,15 @@ export async function logToFile(level: LogLevel, message: string): Promise<void>
     await ensureDir(logFolderPath);
 
     // Création du fichier
-    const logFilePath = join(logFolderPath, `${format(currentDate, "ddMMyyyy")}_${logFile}`);
-    const file = await Deno.open(logFilePath, { create: true, append: true, write: true });
+    const logFilePath = join(
+      logFolderPath,
+      `${format(currentDate, "ddMMyyyy")}_${logFile}`,
+    );
+    const file = await Deno.open(logFilePath, {
+      create: true,
+      append: true,
+      write: true,
+    });
 
     // Écriture dans le fichier
     await Deno.write(file.rid, encoder.encode(log));

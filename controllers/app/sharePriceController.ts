@@ -11,7 +11,7 @@ interface CustomContext extends Context {
 const SharePriceController = {
   async getAllSharePrices(ctx: Context) {
     try {
-      if (!checkHttpMethod(ctx, ['GET'])) {
+      if (!checkHttpMethod(ctx, ["GET"])) {
         return;
       }
 
@@ -35,7 +35,7 @@ const SharePriceController = {
 
   async getSharePriceById(ctx: CustomContext) {
     try {
-      if (!checkHttpMethod(ctx, ['GET'])) {
+      if (!checkHttpMethod(ctx, ["GET"])) {
         return;
       }
 

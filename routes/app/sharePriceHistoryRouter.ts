@@ -3,8 +3,13 @@ import SharePriceHistoryController from "../../controllers/app/sharePriceHistory
 
 const sharePriceHistoryRouter = new Router();
 
-sharePriceHistoryRouter.get("/", SharePriceHistoryController.getAllSharePriceHistory);
-sharePriceHistoryRouter.get("/sharePrices/:sharePriceId", SharePriceHistoryController.getSharePriceHistoryBySharePriceId);
+sharePriceHistoryRouter.get(
+  "/",
+  SharePriceHistoryController.getAllSharePriceHistory,
+);
+sharePriceHistoryRouter.get(
+  "/sharePrices/:sharePriceId",
+  SharePriceHistoryController.getSharePriceHistoryBySharePriceId,
+);
 
 export default sharePriceHistoryRouter;
-

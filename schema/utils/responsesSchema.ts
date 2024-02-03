@@ -39,6 +39,6 @@ export interface ErrorResponse {
 }
 
 export interface InfoResponse {
-  lastInsertId: number,
-  affectedRows: number
+  lastInsertId: number;
+  affectedRows: number;
 }

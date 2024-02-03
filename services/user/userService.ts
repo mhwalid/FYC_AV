@@ -3,46 +3,48 @@ import { bcrypt } from "../../deps.ts";
 import usersQueries from "../../db/queries/user/usersQueries.ts";
 import {
   UserSchema,
-  UserSchemaCreate,
-  UserSchemaWalletUpdate,
-  UserSchemaInfoUpdate,
-  UserSchemaRoleUpdate,
   UserSchemaActiveUpdate,
-  UserSchemaRegister
+  UserSchemaCreate,
+  UserSchemaInfoUpdate,
+  UserSchemaRegister,
+  UserSchemaRoleUpdate,
+  UserSchemaWalletUpdate,
 } from "../../schema/user/usersSchema.ts";
 import {
-  FindResponse,
-  FindOneResponse,
   CreateResponse,
+  FindOneResponse,
+  FindResponse,
+  InfoResponse,
   UpdateByIdResponse,
-  InfoResponse
 } from "../../schema/utils/responsesSchema.ts";
-import roleService from './roleService.ts'
+import roleService from "./roleService.ts";
 import walletHistoryService from "./walletHistoryService.ts";
 import { WalletHistorySchemaCreate } from "../../schema/user/walletHistorySchema.ts";
 import { UserSchemaFindAllFilters } from "../../schema/user/usersSchema.ts";
 
 const userService = {
-  findAll: async (filters?: UserSchemaFindAllFilters): Promise<FindResponse<UserSchema>> => {
+  findAll: async (
+    filters?: UserSchemaFindAllFilters,
+  ): Promise<FindResponse<UserSchema>> => {
     try {
-      let query = 'SELECT * FROM users';
+      let query = "SELECT * FROM users";
       const queryParams: any[] = [];
 
       if (filters) {
         const conditions: string[] = [];
 
         if (filters.isActive !== undefined) {
-          conditions.push('is_active = ?');
+          conditions.push("is_active = ?");
           queryParams.push(filters.isActive);
         }
 
         if (filters.roleId) {
-          conditions.push('role_id = ?');
+          conditions.push("role_id = ?");
           queryParams.push(filters.roleId);
         }
 
         if (conditions.length > 0) {
-          query += ' WHERE ' + conditions.join(' AND ');
+          query += " WHERE " + conditions.join(" AND ");
         }
       }
 
@@ -55,7 +57,9 @@ const userService = {
         data: result as UserSchema[],
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération de la liste des utilisateurs : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la récupération de la liste des utilisateurs : ${error.message}`,
+      );
     }
   },
 
@@ -77,7 +81,9 @@ const userService = {
         data: result[0] as UserSchema,
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération de l'utilisateur : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la récupération de l'utilisateur : ${error.message}`,
+      );
     }
   },
 
@@ -99,11 +105,15 @@ const userService = {
         data: result[0] as UserSchema,
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération de l'utilisateur par son email : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la récupération de l'utilisateur par son email : ${error.message}`,
+      );
     }
   },
 
-  create: async (data: UserSchemaCreate): Promise<CreateResponse<UserSchema>> => {
+  create: async (
+    data: UserSchemaCreate,
+  ): Promise<CreateResponse<UserSchema>> => {
     try {
       const resultExistUserEmail = await userService.findByEmail(data.email);
       if (resultExistUserEmail.success) {
@@ -121,7 +131,7 @@ const userService = {
           success: false,
           message: roleExists.message,
           httpCode: roleExists.httpCode,
-          info: roleExists.data as null
+          info: roleExists.data as null,
         };
       }
 
@@ -145,7 +155,7 @@ const userService = {
           userData.isCdu,
           userData.cduAcceptedAt,
           userData.roleId,
-        ]
+        ],
       );
       return {
         success: true,
@@ -154,11 +164,15 @@ const userService = {
         info: result as InfoResponse,
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la création de l'utilisateur : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la création de l'utilisateur : ${error.message}`,
+      );
     }
   },
 
-  register: async (data: UserSchemaRegister): Promise<CreateResponse<UserSchema>> => {
+  register: async (
+    data: UserSchemaRegister,
+  ): Promise<CreateResponse<UserSchema>> => {
     try {
       const resultExistUserEmail = await userService.findByEmail(data.email);
       if (resultExistUserEmail.success) {
@@ -170,14 +184,16 @@ const userService = {
         };
       }
 
-      const resultNotExistRoleName = await roleService.checkIfNameNotExists("USER")
+      const resultNotExistRoleName = await roleService.checkIfNameNotExists(
+        "USER",
+      );
       if (resultNotExistRoleName.success) {
         return {
           success: !resultNotExistRoleName.success,
           message: resultNotExistRoleName.message,
           httpCode: resultNotExistRoleName.httpCode,
-          info: null
-        }
+          info: null,
+        };
       }
 
       const salt = await bcrypt.genSalt(8);
@@ -199,8 +215,8 @@ const userService = {
           userData.wallet,
           userData.isCdu,
           userData.cduAcceptedAt,
-          resultNotExistRoleName.data?.id
-        ]
+          resultNotExistRoleName.data?.id,
+        ],
       );
       return {
         success: true,
@@ -209,11 +225,15 @@ const userService = {
         info: result as InfoResponse,
       };
     } catch (error) {
-      throw new Error(`Erreur lors de l'enregistrement de l'utilisateur : ${error.message}`);
+      throw new Error(
+        `Erreur lors de l'enregistrement de l'utilisateur : ${error.message}`,
+      );
     }
   },
 
-  updateUserRoleById: async (data: UserSchemaRoleUpdate): Promise<UpdateByIdResponse<UserSchema>> => {
+  updateUserRoleById: async (
+    data: UserSchemaRoleUpdate,
+  ): Promise<UpdateByIdResponse<UserSchema>> => {
     try {
       const resultExistUserId = await userService.findById(data.id);
       if (!resultExistUserId.success) {
@@ -221,23 +241,23 @@ const userService = {
           success: false,
           message: resultExistUserId.message,
           httpCode: resultExistUserId.httpCode,
-          data: null
+          data: null,
         };
       }
 
-      const resultExistRoleId = await roleService.findById(data.roleId)
+      const resultExistRoleId = await roleService.findById(data.roleId);
       if (!resultExistRoleId.success) {
         return {
           success: false,
           message: resultExistRoleId.message,
           httpCode: resultExistRoleId.httpCode,
-          data: null
-        }
+          data: null,
+        };
       }
 
       const userUpdate = await dbClient.query(
         usersQueries.updateRole,
-        [data.roleId, data.id]
+        [data.roleId, data.id],
       );
 
       return {
@@ -247,11 +267,15 @@ const userService = {
         data: userUpdate as InfoResponse,
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la mise à jour du role de l'utilisateur : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la mise à jour du role de l'utilisateur : ${error.message}`,
+      );
     }
   },
 
-  updateUserInfoById: async (data: UserSchemaInfoUpdate): Promise<UpdateByIdResponse<UserSchema>> => {
+  updateUserInfoById: async (
+    data: UserSchemaInfoUpdate,
+  ): Promise<UpdateByIdResponse<UserSchema>> => {
     try {
       const resultExistUserId = await userService.findById(data.id);
       if (!resultExistUserId.success) {
@@ -259,7 +283,7 @@ const userService = {
           success: false,
           message: resultExistUserId.message,
           httpCode: resultExistUserId.httpCode,
-          data: resultExistUserId.data as null
+          data: resultExistUserId.data as null,
         };
       }
 
@@ -278,7 +302,10 @@ const userService = {
       const updateParams = buildUpdateParams(data);
       const updateString = buildUpdateString(data);
 
-      const query = usersQueries.updateInfo.replace(`{updateString}`, updateString);
+      const query = usersQueries.updateInfo.replace(
+        `{updateString}`,
+        updateString,
+      );
       const userUpdate = await dbClient.query(query, updateParams);
 
       return {
@@ -288,11 +315,15 @@ const userService = {
         data: userUpdate as InfoResponse,
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la mise à jour de l'utilisateur : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la mise à jour de l'utilisateur : ${error.message}`,
+      );
     }
   },
 
-  updateUserWalletById: async (data: UserSchemaWalletUpdate): Promise<UpdateByIdResponse<UserSchema>> => {
+  updateUserWalletById: async (
+    data: UserSchemaWalletUpdate,
+  ): Promise<UpdateByIdResponse<UserSchema>> => {
     try {
       const resultExistUserId = await userService.findById(data.id);
       if (!resultExistUserId.success || resultExistUserId.data === null) {
@@ -300,7 +331,7 @@ const userService = {
           success: false,
           message: resultExistUserId.message,
           httpCode: resultExistUserId.httpCode,
-          data: resultExistUserId.data as null
+          data: resultExistUserId.data as null,
         };
       }
 
@@ -309,17 +340,17 @@ const userService = {
       let typeOperation = "";
 
       if (typeof wallet === "string") {
-        wallet = parseFloat(wallet)
+        wallet = parseFloat(wallet);
       }
 
       if (data.value >= 0) {
         wallet = wallet + data.value;
-        typeOperation = 'GAIN'
+        typeOperation = "GAIN";
         responseMessage = `Argent ajouté : ${data.value}€. Total : ${wallet}€`;
       } else {
-        typeOperation = 'PERTE'
+        typeOperation = "PERTE";
         // Valeur absolue pour éviter un négatif
-        const value = Math.abs(data.value)
+        const value = Math.abs(data.value);
 
         if (wallet >= value) {
           wallet -= value;
@@ -336,29 +367,34 @@ const userService = {
 
       const userUpdate = await dbClient.query(
         usersQueries.updateWallet,
-        [parseFloat(wallet.toFixed(2)), data.id]
+        [parseFloat(wallet.toFixed(2)), data.id],
       );
 
       // On historise le nouveau portefeuille
       const sharePriceHistory: WalletHistorySchemaCreate = {
         value: wallet,
         operationType: typeOperation,
-        userId: data.id
-      }
+        userId: data.id,
+      };
       await walletHistoryService.create(sharePriceHistory);
 
       return {
         success: true,
-        message: "Portefeuille de l'utilisateur mis à jour : " + responseMessage,
+        message: "Portefeuille de l'utilisateur mis à jour : " +
+          responseMessage,
         httpCode: 200,
         data: userUpdate as InfoResponse,
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la mise à jour du portefeuille de l'utilisateur : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la mise à jour du portefeuille de l'utilisateur : ${error.message}`,
+      );
     }
   },
 
-  updateUserIsActive: async (data: UserSchemaActiveUpdate): Promise<UpdateByIdResponse<UserSchema>> => {
+  updateUserIsActive: async (
+    data: UserSchemaActiveUpdate,
+  ): Promise<UpdateByIdResponse<UserSchema>> => {
     try {
       const resultExistUserId = await userService.findById(data.id);
       if (!resultExistUserId.success) {
@@ -366,13 +402,13 @@ const userService = {
           success: false,
           message: resultExistUserId.message,
           httpCode: resultExistUserId.httpCode,
-          data: resultExistUserId.data as null
+          data: resultExistUserId.data as null,
         };
       }
 
       const userUpdate = await dbClient.query(
         usersQueries.updateIsActive,
-        [data.isActive, data.id]
+        [data.isActive, data.id],
       );
 
       return {
@@ -382,7 +418,9 @@ const userService = {
         data: userUpdate as InfoResponse,
       };
     } catch (error) {
-      throw new Error(`Erreur lors de mise à jour de l'activité de l'utilisateur : ${error.message}`);
+      throw new Error(
+        `Erreur lors de mise à jour de l'activité de l'utilisateur : ${error.message}`,
+      );
     }
   },
 };
@@ -399,7 +437,7 @@ const buildUpdateParams = (data: UserSchemaInfoUpdate): any[] => {
     updateParams.push(data.email);
   }
 
-  updateParams.push(data.id)
+  updateParams.push(data.id);
   return updateParams;
 };
 
@@ -416,6 +454,5 @@ const buildUpdateString = (data: UserSchemaInfoUpdate): string => {
   }
   return updates.join(", ");
 };
-
 
 export default userService;

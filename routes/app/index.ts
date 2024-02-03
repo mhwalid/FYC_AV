@@ -9,7 +9,7 @@ import { validateAuthentificationMiddleware } from "../../middlewares/check-auth
 
 const appRouter = new Router();
 
-appRouter.use(validateAuthentificationMiddleware('USER'));
+appRouter.use(validateAuthentificationMiddleware("USER"));
 
 appRouter.use("/sharePriceHistories", sharePriceHistoryRouter.routes());
 appRouter.use("/sharePrices", sharePriceRouter.routes());

@@ -7,4 +7,3 @@ export interface UserLoginSchema {
 export interface UserLoginSchemaCreate {
   userId: number;
 }
-

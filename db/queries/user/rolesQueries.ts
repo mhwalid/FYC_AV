@@ -9,7 +9,7 @@ const roleQueries = {
   create: `INSERT INTO roles (name, created_at) VALUES (?, NOW())`,
   update: `UPDATE roles SET name = ?, updated_at = NOW() WHERE id = ?`,
   delete: `DELETE FROM roles WHERE id = ?`,
-  checkRoleInUserUsage: `SELECT COUNT(*) as count FROM users WHERE role_id = ?`
+  checkRoleInUserUsage: `SELECT COUNT(*) as count FROM users WHERE role_id = ?`,
 };
 
 export default roleQueries;

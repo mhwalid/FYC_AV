@@ -1,13 +1,16 @@
 import dbClient from "../../db/connectDb.ts";
 import transactionsQueries from "../../db/queries/transaction/transactionsQueries.ts";
-import { TransactionSchema, TransactionSchemaCreate } from "../../schema/transaction/transactionsSchema.ts";
 import {
-  FindResponse,
-  FindOneResponse,
+  TransactionSchema,
+  TransactionSchemaCreate,
+} from "../../schema/transaction/transactionsSchema.ts";
+import {
   CreateResponse,
-  InfoResponse
+  FindOneResponse,
+  FindResponse,
+  InfoResponse,
 } from "../../schema/utils/responsesSchema.ts";
-import userService from "../user/userService.ts"
+import userService from "../user/userService.ts";
 
 const transactionService = {
   findAll: async (): Promise<FindResponse<TransactionSchema>> => {
@@ -20,11 +23,15 @@ const transactionService = {
         data: result as TransactionSchema[],
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la récupérations des transactions : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la récupérations des transactions : ${error.message}`,
+      );
     }
   },
 
-  findByUserId: async (userId: number): Promise<FindResponse<TransactionSchema>> => {
+  findByUserId: async (
+    userId: number,
+  ): Promise<FindResponse<TransactionSchema>> => {
     try {
       const userExists = await userService.findById(userId);
       if (!userExists.success) {
@@ -32,11 +39,14 @@ const transactionService = {
           success: false,
           message: userExists.message,
           httpCode: userExists.httpCode,
-          data: userExists.data as null
+          data: userExists.data as null,
         };
       }
 
-      const transactions = await dbClient.query(transactionsQueries.findByUserId, [userId]);
+      const transactions = await dbClient.query(
+        transactionsQueries.findByUserId,
+        [userId],
+      );
       if (transactions.length === 0) {
         return {
           success: false,
@@ -52,13 +62,17 @@ const transactionService = {
         data: transactions as TransactionSchema[],
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération des transactions de l'utilisateur : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la récupération des transactions de l'utilisateur : ${error.message}`,
+      );
     }
   },
 
   findById: async (id: number): Promise<FindOneResponse<TransactionSchema>> => {
     try {
-      const transaction = await dbClient.query(transactionsQueries.findById, [id]);
+      const transaction = await dbClient.query(transactionsQueries.findById, [
+        id,
+      ]);
       if (transaction.length === 0) {
         return {
           success: false,
@@ -74,15 +88,25 @@ const transactionService = {
         data: transaction[0] as TransactionSchema,
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération de la transaction : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la récupération de la transaction : ${error.message}`,
+      );
     }
   },
 
-  create: async (data: TransactionSchemaCreate): Promise<CreateResponse<InfoResponse>> => {
+  create: async (
+    data: TransactionSchemaCreate,
+  ): Promise<CreateResponse<InfoResponse>> => {
     try {
       const result = await dbClient.query(
         transactionsQueries.create,
-        [data.volume, data.value, data.typeTransaction, data.userId, data.sharePriceHistoryId]
+        [
+          data.volume,
+          data.value,
+          data.typeTransaction,
+          data.userId,
+          data.sharePriceHistoryId,
+        ],
       );
       return {
         success: true,
@@ -91,7 +115,9 @@ const transactionService = {
         info: result as InfoResponse,
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la création de la transaction : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la création de la transaction : ${error.message}`,
+      );
     }
   },
 };

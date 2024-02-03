@@ -1,7 +1,14 @@
 import dbClient from "../../db/connectDb.ts";
 import userLoginQueries from "../../db/queries/user/userLoginQueries.ts";
-import { UserLoginSchema, UserLoginSchemaCreate } from "../../schema/user/userLoginsSchema.ts";
-import { FindResponse, CreateResponse, InfoResponse } from "../../schema/utils/responsesSchema.ts";
+import {
+  UserLoginSchema,
+  UserLoginSchemaCreate,
+} from "../../schema/user/userLoginsSchema.ts";
+import {
+  CreateResponse,
+  FindResponse,
+  InfoResponse,
+} from "../../schema/utils/responsesSchema.ts";
 import userService from "./userService.ts";
 
 const userLoginService = {
@@ -15,11 +22,15 @@ const userLoginService = {
         data: result as UserLoginSchema[],
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération de toutes les connexions utilisateur : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la récupération de toutes les connexions utilisateur : ${error.message}`,
+      );
     }
   },
 
-  findByUserId: async (userId: number): Promise<FindResponse<UserLoginSchema>> => {
+  findByUserId: async (
+    userId: number,
+  ): Promise<FindResponse<UserLoginSchema>> => {
     try {
       const userExists = await userService.findById(userId);
       if (!userExists.success) {
@@ -27,11 +38,13 @@ const userLoginService = {
           success: false,
           message: userExists.message,
           httpCode: userExists.httpCode,
-          data: userExists.data as null
+          data: userExists.data as null,
         };
       }
 
-      const userLogin = await dbClient.query(userLoginQueries.findByUserId, [userId]);
+      const userLogin = await dbClient.query(userLoginQueries.findByUserId, [
+        userId,
+      ]);
       if (userLogin.length === 0) {
         return {
           success: false,
@@ -47,13 +60,19 @@ const userLoginService = {
         data: userLogin as UserLoginSchema[],
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération des connexions de l'utilisateur : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la récupération des connexions de l'utilisateur : ${error.message}`,
+      );
     }
   },
 
-  create: async (data: UserLoginSchemaCreate): Promise<CreateResponse<InfoResponse>> => {
+  create: async (
+    data: UserLoginSchemaCreate,
+  ): Promise<CreateResponse<InfoResponse>> => {
     try {
-      const userLoginCreate = await dbClient.query(userLoginQueries.create, [data.userId]);
+      const userLoginCreate = await dbClient.query(userLoginQueries.create, [
+        data.userId,
+      ]);
       return {
         success: true,
         message: "Connexion utilisateur créée avec succès",
@@ -61,7 +80,9 @@ const userLoginService = {
         info: userLoginCreate as InfoResponse,
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la création de la connexion utilisateur : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la création de la connexion utilisateur : ${error.message}`,
+      );
     }
   },
 };

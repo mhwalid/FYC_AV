@@ -1,7 +1,14 @@
 import dbClient from "../../db/connectDb.ts";
 import walletHistoryQueries from "../../db/queries/user/walletHistoryQueries.ts";
-import { WalletHistorySchema, WalletHistorySchemaCreate } from "../../schema/user/walletHistorySchema.ts";
-import { FindResponse, CreateResponse, InfoResponse } from "../../schema/utils/responsesSchema.ts";
+import {
+  WalletHistorySchema,
+  WalletHistorySchemaCreate,
+} from "../../schema/user/walletHistorySchema.ts";
+import {
+  CreateResponse,
+  FindResponse,
+  InfoResponse,
+} from "../../schema/utils/responsesSchema.ts";
 import userService from "./userService.ts";
 
 const walletHistoryService = {
@@ -15,11 +22,15 @@ const walletHistoryService = {
         data: result as WalletHistorySchema[],
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération des historisations des portefeuilles : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la récupération des historisations des portefeuilles : ${error.message}`,
+      );
     }
   },
 
-  findByUserId: async (userId: number): Promise<FindResponse<WalletHistorySchema>> => {
+  findByUserId: async (
+    userId: number,
+  ): Promise<FindResponse<WalletHistorySchema>> => {
     try {
       const userExists = await userService.findById(userId);
       if (!userExists.success) {
@@ -27,11 +38,14 @@ const walletHistoryService = {
           success: false,
           message: userExists.message,
           httpCode: userExists.httpCode,
-          data: userExists.data as null
+          data: userExists.data as null,
         };
       }
 
-      const walletHistory = await dbClient.query(walletHistoryQueries.findByUserId, [userId]);
+      const walletHistory = await dbClient.query(
+        walletHistoryQueries.findByUserId,
+        [userId],
+      );
       if (walletHistory.length === 0) {
         return {
           success: false,
@@ -47,11 +61,15 @@ const walletHistoryService = {
         data: walletHistory as WalletHistorySchema[],
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération de l'historisation du portefeuille : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la récupération de l'historisation du portefeuille : ${error.message}`,
+      );
     }
   },
 
-  create: async (data: WalletHistorySchemaCreate): Promise<CreateResponse<InfoResponse>> => {
+  create: async (
+    data: WalletHistorySchemaCreate,
+  ): Promise<CreateResponse<InfoResponse>> => {
     try {
       const resultExistUserId = await userService.findById(data.userId);
       if (!resultExistUserId.success) {
@@ -59,13 +77,13 @@ const walletHistoryService = {
           success: false,
           message: resultExistUserId.message,
           httpCode: resultExistUserId.httpCode,
-          info: resultExistUserId.data as null
+          info: resultExistUserId.data as null,
         };
       }
 
       const walletHistoryCreate = await dbClient.query(
         walletHistoryQueries.create,
-        [data.value, data.operationType, data.userId]
+        [data.value, data.operationType, data.userId],
       );
       return {
         success: true,
@@ -74,7 +92,9 @@ const walletHistoryService = {
         info: walletHistoryCreate as InfoResponse,
       };
     } catch (error) {
-      throw new Error(`Erreur lors de l'historisation du portefeuille : ${error.message}`);
+      throw new Error(
+        `Erreur lors de l'historisation du portefeuille : ${error.message}`,
+      );
     }
   },
 };

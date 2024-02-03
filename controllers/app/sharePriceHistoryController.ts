@@ -11,7 +11,7 @@ interface CustomContext extends Context {
 const SharePriceHistoryController = {
   async getAllSharePriceHistory(ctx: Context) {
     try {
-      if (!checkHttpMethod(ctx, ['GET'])) {
+      if (!checkHttpMethod(ctx, ["GET"])) {
         return;
       }
 
@@ -35,12 +35,13 @@ const SharePriceHistoryController = {
 
   async getSharePriceHistoryBySharePriceId(ctx: CustomContext) {
     try {
-      if (!checkHttpMethod(ctx, ['GET'])) {
+      if (!checkHttpMethod(ctx, ["GET"])) {
         return;
       }
 
       const sharePriceId = ctx.params.sharePriceId;
-      const sharePriceHistory = await sharePriceHistoryService.findBySharePriceId(Number(sharePriceId));
+      const sharePriceHistory = await sharePriceHistoryService
+        .findBySharePriceId(Number(sharePriceId));
       ctx.response.status = sharePriceHistory.httpCode;
       ctx.response.body = {
         success: sharePriceHistory.success,

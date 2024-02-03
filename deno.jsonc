@@ -1,0 +1,10 @@
+{
+  "lint": {
+    "include": ["controllers/", "routes/", "crontab/", "schema"],
+    "rules": {
+      "tags": ["recommended"],
+      "include": ["ban-untagged-todo"],
+      "exclude": ["no-unused-vars"]
+    }
+  }
+}

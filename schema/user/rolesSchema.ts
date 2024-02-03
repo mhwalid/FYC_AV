@@ -10,6 +10,6 @@ export interface RoleSchemaCreate {
 }
 
 export interface RoleSchemaUpdate {
-  id: number
+  id: number;
   name: string;
 }

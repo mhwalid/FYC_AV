@@ -1,7 +1,14 @@
 import dbClient from "../../db/connectDb.ts";
 import sharePriceHistoryQueries from "../../db/queries/sharePrice/sharePriceHistoryQueries.ts";
-import { SharePriceHistorySchema, SharePriceHistorySchemaCreate } from "../../schema/sharePrice/sharePriceHistorySchema.ts";
-import { FindResponse, CreateResponse, InfoResponse } from "../../schema/utils/responsesSchema.ts";
+import {
+  SharePriceHistorySchema,
+  SharePriceHistorySchemaCreate,
+} from "../../schema/sharePrice/sharePriceHistorySchema.ts";
+import {
+  CreateResponse,
+  FindResponse,
+  InfoResponse,
+} from "../../schema/utils/responsesSchema.ts";
 import sharePriceService from "./sharePriceService.ts";
 
 const sharePriceHistoryService = {
@@ -15,11 +22,15 @@ const sharePriceHistoryService = {
         data: result as SharePriceHistorySchema[],
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération de la Liste des historisations d'actionss : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la récupération de la Liste des historisations d'actionss : ${error.message}`,
+      );
     }
   },
 
-  findBySharePriceId: async (sharePriceId: number): Promise<FindResponse<SharePriceHistorySchema>> => {
+  findBySharePriceId: async (
+    sharePriceId: number,
+  ): Promise<FindResponse<SharePriceHistorySchema>> => {
     try {
       const sharePriceExists = await sharePriceService.findById(sharePriceId);
       if (!sharePriceExists.success) {
@@ -27,11 +38,14 @@ const sharePriceHistoryService = {
           success: false,
           message: sharePriceExists.message,
           httpCode: sharePriceExists.httpCode,
-          data: sharePriceExists.data as null
+          data: sharePriceExists.data as null,
         };
       }
 
-      const sharePriceHistory = await dbClient.query(sharePriceHistoryQueries.findBySharePriceId, [sharePriceId]);
+      const sharePriceHistory = await dbClient.query(
+        sharePriceHistoryQueries.findBySharePriceId,
+        [sharePriceId],
+      );
       if (sharePriceHistory.length === 0) {
         return {
           success: false,
@@ -47,21 +61,30 @@ const sharePriceHistoryService = {
         data: sharePriceHistory as SharePriceHistorySchema[],
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la récupération de l'historique de l'actions : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la récupération de l'historique de l'actions : ${error.message}`,
+      );
     }
   },
 
-  create: async (data: SharePriceHistorySchemaCreate): Promise<CreateResponse<InfoResponse>> => {
+  create: async (
+    data: SharePriceHistorySchemaCreate,
+  ): Promise<CreateResponse<InfoResponse>> => {
     try {
-      const sharePriceHistoryCreate = await dbClient.query(sharePriceHistoryQueries.create, [data.oldValue, data.oldVolume, data.sharePriceId]);
+      const sharePriceHistoryCreate = await dbClient.query(
+        sharePriceHistoryQueries.create,
+        [data.oldValue, data.oldVolume, data.sharePriceId],
+      );
       return {
         success: true,
         message: "Historique des prix d'actions créé avec succès",
         httpCode: 201,
-        info: sharePriceHistoryCreate as InfoResponse
+        info: sharePriceHistoryCreate as InfoResponse,
       };
     } catch (error) {
-      throw new Error(`Erreur lors de la l'historisation de l'action : ${error.message}`);
+      throw new Error(
+        `Erreur lors de la l'historisation de l'action : ${error.message}`,
+      );
     }
   },
 };
