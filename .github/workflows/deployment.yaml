@@ -23,7 +23,7 @@ jobs:
         with:
           dockerfile: Dockerfile
       - run: docker image build --tag="${IMAGE_NAME}" ./
-      - run: docker run -d --name deno-container "${IMAGE_NAME} sh -c "deno lint && deno test && deno fmt""
+      - run: docker run -d --name deno-container "${IMAGE_NAME}" sh -c "deno lint && deno test && deno fmt"
 
   continuous-deployment:
     runs-on: ubuntu-latest
