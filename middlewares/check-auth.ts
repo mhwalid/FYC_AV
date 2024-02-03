@@ -1,27 +1,41 @@
-import { Context, type RouterMiddleware } from "https://deno.land/x/oak@v12.6.1/mod.ts";
-import { verify } from "https://deno.land/x/djwt@v2.9.1/mod.ts";
-import { key } from "../utils/apiKeys.ts";
-// Middleware pour vérifier le token JWT
-export const validateJwtMiddleware: RouterMiddleware<string> = async(ctx: Context, next: any) =>{
-    const headers = ctx.request.headers;
-    const authHeader = headers.get("Authorization");
-  
-    if (!authHeader) {
+import { Context, type RouterMiddleware, verify } from "../deps.ts";
+import { getKey } from "../utils/keyManager.ts";
+import CookiesHandler from "../utils/cookiesHandler.ts";
+
+export const validateAuthentificationMiddleware: (
+  role: string,
+) => RouterMiddleware<string> = (role) => {
+  return async (ctx: Context, next: any) => {
+    const token = await CookiesHandler.getCookie(ctx, "token");
+    const userRole = await CookiesHandler.getCookie(ctx, "role");
+
+    if (token === undefined || userRole === undefined) {
       ctx.response.status = 401;
-      ctx.response.body = { error: "No authorization header" };
+      ctx.response.body = { error: "Vous n'êtes pas connecté" };
       return;
     }
-  
-    const jwt = authHeader.split(" ")[1];
-  
-    if (!jwt) {
-      ctx.response.status = 401;
-      ctx.response.body = { error: "No JWT" };
+
+    if (userRole !== role) {
+      ctx.response.status = 403;
+      ctx.response.body = {
+        error: "Vous n'avez pas l'autorisation d'accéder à cette ressource",
+      };
       return;
     }
-  
+
     try {
-      const jwtPayload = await verify(jwt, key);
+      // Vérifier si le token a expiré
+      const jwtPayload = await verify(token, await getKey());
+
+      const actualTimeStampUnix = Math.floor(Date.now() / 1000);
+      if (jwtPayload.exp && jwtPayload.exp < actualTimeStampUnix) {
+        ctx.response.status = 401;
+        ctx.response.body = {
+          error: "Votre session a expiré, merci de vous reconnecter",
+        };
+        return;
+      }
+
       ctx.state.jwtPayload = jwtPayload;
       await next();
     } catch (error) {
@@ -29,4 +43,5 @@ export const validateJwtMiddleware: RouterMiddleware<string> = async(ctx: Contex
       ctx.response.body = { error: error.message };
       return;
     }
-  }
+  };
+};
