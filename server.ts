@@ -22,14 +22,21 @@ router.use("/app", appRouter.routes());
 router.use("/auth", authRouter.routes());
 router.use("/admin", adminRouter.routes());
 
-app.use(oakCors({ origin: "*" }));
+app.use(
+  oakCors({
+    credentials: true,
+    origin: /^.+localhost:(3000|5173)$/
+
+  })
+);
 app.use(router.routes());
 app.use(router.allowedMethods());
 
+
 app.addEventListener("listen", ({ secure, hostname, port }) => {
-    const protocol = secure ? "https://" : "http://";
-    const url = `${protocol}${hostname ?? "localhost"}:${port}`;
-    console.log(`Listening on: ${url}`);
+  const protocol = secure ? "https://" : "http://";
+  const url = `${protocol}${hostname ?? "localhost"}:${port}`;
+  console.log(`Listening on: ${url}`);
 });
 
 const port = parseInt(PORT) || 8080;
