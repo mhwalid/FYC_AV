@@ -30,7 +30,7 @@ const TransactionController = {
                 return;
             }
 
-            const userId = getConnectedUser(ctx);
+            const userId = await getConnectedUser(ctx);
             if (!userId) {
                 return
             }
