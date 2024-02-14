@@ -72,7 +72,7 @@ const AuthController = {
         }
     },
 
-    async whoaim(ctx: Context) {
+    async whoiam(ctx: Context) {
         try {
             if (!checkHttpMethod(ctx, ['GET'])) {
                 return;
