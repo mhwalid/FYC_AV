@@ -15,6 +15,7 @@ authRouter.use(async (ctx, next) => {
 
 authRouter
   .post("/register", AuthController.register)
+  .post("/whoaim", AuthController.whoaim)
   .post("/login", AuthController.login)
   .get("/logout", AuthController.logout)
   .get("/:userId/unsubscribe", AuthController.unsubscribe)

@@ -4,6 +4,8 @@ import { UserSchemaRegister, UserSchemaLogin, UserSchemaActiveUpdate } from '../
 import userService from "../../services/user/userService.ts";
 import checkHttpMethod from "../../utils/checkHttpMethod.ts";
 import CookiesHandler from "../../utils/cookiesHandler.ts";
+import getConnectedUser from "../../utils/checkConnectedUser.ts";
+import roleService from "../../services/user/roleService.ts";
 
 interface CustomContext extends Context {
     params: {
@@ -69,6 +71,36 @@ const AuthController = {
             };
         }
     },
+
+    async whoaim(ctx: Context) {
+        try {
+            if (!checkHttpMethod(ctx, ['GET'])) {
+                return;
+            }
+
+            const userId = await getConnectedUser(ctx);
+            if (!userId) {
+                return
+            }
+
+            const roleResponse = await roleService.findByUserId(Number(userId))
+
+            ctx.response.status = roleResponse.httpCode;
+            ctx.response.body = {
+                success: roleResponse.success,
+                message: roleResponse.message,
+                userLogin: roleResponse.data,
+            };
+        } catch (error) {
+            ctx.response.status = 500;
+            ctx.response.body = {
+                success: false,
+                message: error.message,
+                transaction: null,
+            };
+        }
+    },
+
 
     async logout(ctx: Context) {
         try {
